@@ -817,26 +817,53 @@ function toast(msg) {
 }
 
 // ---------- inicialização ----------
-cli.auth.onAuthStateChange(async (evento, sessao) => {
-  if (!sessao) { carregado = false; renderLogin(); return; }
-  if (carregado) return;
+// IMPORTANTE: nunca chamar o banco DENTRO do onAuthStateChange — o supabase-js
+// segura um lock interno durante o callback e as consultas travam pra sempre.
+let bootando = false;
+async function boot(sessao) {
+  if (carregado || bootando) return;
+  bootando = true;
   const email = sessao.user.email;
   app.innerHTML = '<p class="note" style="text-align:center;padding-top:40px;">Carregando dados&hellip;</p>';
   const ok = await carregaTudo();
-  if (!ok) return;
+  if (!ok) {
+    bootando = false;
+    app.innerHTML = '<div class="card" style="margin-top:32px;">N&atilde;o consegui carregar os dados.</div>' +
+      '<button class="btn primary" id="tentaBtn">Tentar de novo</button> <button class="btn" id="saiBtn">Sair</button>';
+    document.getElementById('tentaBtn').addEventListener('click', () => boot(sessao));
+    document.getElementById('saiBtn').addEventListener('click', () => cli.auth.signOut());
+    return;
+  }
   EU = OPERADORES.find(o => o.email === email) || null;
   if (!EU) {
+    bootando = false;
     app.innerHTML = '<div class="card" style="margin-top:32px;">Seu login (' + esc(email) + ') ainda n&atilde;o tem perfil na opera&ccedil;&atilde;o. Fale com o Lucas.</div>' +
       '<button class="btn" id="saiBtn">Sair</button>';
     document.getElementById('saiBtn').addEventListener('click', () => cli.auth.signOut());
     return;
   }
   carregado = true;
+  bootando = false;
   syncChip();
   ligaTempoReal();
   if (!location.hash) { try { history.replaceState(null, '', '#painel'); } catch (e) {} }
   route();
+}
+
+cli.auth.onAuthStateChange((evento, sessao) => {
+  if (evento === 'SIGNED_OUT' || !sessao) {
+    carregado = false; bootando = false; EU = null;
+    renderLogin();
+    return;
+  }
+  // agenda pra FORA do callback (evita o deadlock do lock de auth)
+  setTimeout(() => boot(sessao), 0);
 });
+
+(async () => {
+  const { data } = await cli.auth.getSession();
+  if (data && data.session) boot(data.session); else renderLogin();
+})();
 </script>
 </body>
 </html>
