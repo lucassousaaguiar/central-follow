@@ -575,12 +575,6 @@ function renderPainel() {
   }
 
   h += '<button class="btn" id="btnRel" style="width:100%;margin-top:6px;">Copiar relat&oacute;rio</button>';
-  if (gestor) {
-    h += '<div class="card" style="margin-top:12px;"><h2 style="font-size:14px;">Migrar progresso da vers&atilde;o antiga</h2>' +
-      '<p class="note" style="margin-top:6px;">Cole aqui um c&oacute;digo de backup (CF1:...) da p&aacute;gina antiga pra importar as marca&ccedil;&otilde;es pro banco.</p>' +
-      '<textarea class="bk-area" id="mgArea" placeholder="CF1:..."></textarea>' +
-      '<button class="btn" id="mgBtn" style="margin-top:10px;">Importar pro banco</button></div>';
-  }
   h += '<p class="note">Regi&otilde;es mapeadas sem celular: ' +
     Object.keys(PERFIS).filter(s => !CELULARES.some(c => c.regiao === s)).map(s => esc(PERFIS[s].nome)).join(' &middot; ') + '.</p>';
   app.innerHTML = h;
@@ -603,42 +597,7 @@ function renderPainel() {
     if (error) { toast('Falha ao salvar atribuição.'); }
     else { await recarregaConfig(); toast('Atribuição salva.'); route(); }
   }));
-  const mgBtn = document.getElementById('mgBtn');
-  if (mgBtn) mgBtn.addEventListener('click', migraBackup);
   window.scrollTo(0, 0);
-}
-
-async function migraBackup() {
-  const raw = (document.getElementById('mgArea').value || '').trim();
-  if (raw.indexOf('CF1:') !== 0) { toast('Código inválido: deve começar com CF1:'); return; }
-  let dados;
-  try { dados = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4))))); } catch (e) { toast('Código inválido ou incompleto.'); return; }
-  const linhas = [];
-  const contasValidas = new Set(CONTAS.map(c => c.id));
-  const mapa = { 'cf_m_': 'concluido', 'cf_x_': 'descartado' };
-  for (const k in dados) {
-    for (const pref in mapa) {
-      if (k.indexOf(pref) === 0) {
-        const conta = k.slice(pref.length);
-        if (!contasValidas.has(conta)) continue;
-        for (const handle in dados[k]) linhas.push({ conta, handle, estado: mapa[pref], por: EU.email });
-      }
-    }
-    if (k.indexOf('cf_a_') === 0) {
-      const conta = k.slice(5);
-      if (!contasValidas.has(conta)) continue;
-      const arr = Array.isArray(dados[k]) ? dados[k] : [];
-      for (const handle of arr) linhas.push({ conta, handle, estado: 'seguindo', por: EU.email });
-    }
-  }
-  if (!linhas.length) { toast('Nada pra importar nesse código.'); return; }
-  for (let i = 0; i < linhas.length; i += 400) {
-    const { error } = await cli.from('progresso').upsert(linhas.slice(i, i + 400));
-    if (error) { toast('Falha na importação: ' + error.message); return; }
-  }
-  await carregaTudo();
-  toast(linhas.length + ' marcações importadas.');
-  route();
 }
 
 // ---------- tela da conta ----------
