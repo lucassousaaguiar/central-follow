@@ -167,6 +167,19 @@
     transition: transform 0.15s; display: inline-block;
   }
   .op-head.fechado .caret { transform: rotate(-90deg); }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block; margin-right: 7px; flex-shrink: 0;
+  }
+  .dot.ativa { background: var(--teal); }
+  .dot.pausada { background: var(--warn); }
+  .dot.ban { background: #c0453f; }
+  .st-sel {
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px;
+    background: var(--card); color: var(--muted); margin-top: 4px;
+  }
+  .conta-row.pausada .conta-user, .conta-row.ban .conta-user { opacity: 0.6; }
   .fac-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
     border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px;
@@ -540,13 +553,18 @@ function renderPainel() {
       c += '<span class="cel-region">' + esc(reg) + '</span>';
     }
     c += '</div>';
+    const podeStatus = gestor || cel.operador_email === EU.email;
     for (const conta of contasDoCel(cel.id)) {
       const r = resumoConta(conta.id);
       const at = atuais(conta.id);
-      c += '<div class="conta-row" data-conta="' + esc(conta.id) + '">' +
-        '<div class="conta-main"><div class="conta-user">' + esc(conta.usuario) + '</div>' +
+      const st = conta.status || 'ativa';
+      c += '<div class="conta-row ' + st + '" data-conta="' + esc(conta.id) + '">' +
+        '<div class="conta-main"><div class="conta-user" style="display:flex;align-items:center;"><span class="dot ' + st + '" title="' + st + '"></span>' + esc(conta.usuario) + '</div>' +
         '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
         (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
+        (podeStatus ? '<select class="st-sel" data-gst="' + esc(conta.id) + '">' +
+          [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
+          '</select>' : '') +
         '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
         '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
     }
@@ -589,6 +607,15 @@ function renderPainel() {
     if (body) body.hidden = !body.hidden;
     hd.classList.toggle('fechado');
   }));
+  app.querySelectorAll('.st-sel').forEach(s => {
+    s.addEventListener('click', e => e.stopPropagation());
+    s.addEventListener('change', async e => {
+      e.stopPropagation();
+      const { error } = await cli.from('contas').update({ status: s.value }).eq('id', s.dataset.gst);
+      if (error) toast('Falha ao salvar o status.');
+      else { await recarregaConfig(); toast('Status salvo.'); route(); }
+    });
+  });
   app.querySelectorAll('.conta-row').forEach(r => r.addEventListener('click', () => nav('#c/' + encodeURIComponent(r.dataset.conta))));
   document.getElementById('btnRel').addEventListener('click', copiaRelatorio);
   app.querySelectorAll('select[data-gcel]').forEach(s => s.addEventListener('change', async () => {
@@ -611,9 +638,11 @@ function renderConta(contaId) {
   const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
   const r = resumoConta(contaId);
 
+  const st = conta.status || 'ativa';
   let h = '<button class="back" id="btnBack">&larr; voltar pro painel</button>';
   h += '<div class="eyebrow">' + esc(cel.nome) + ' &middot; ' + esc(reg) + '</div>';
-  h += '<h1>' + esc(conta.usuario) + '</h1>';
+  h += '<h1 style="display:flex;align-items:center;"><span class="dot ' + st + '"></span>' + esc(conta.usuario) +
+    (st !== 'ativa' ? '<span class="pill off" style="margin-left:10px;">' + st + '</span>' : '') + '</h1>';
   h += '<p class="sub">Bloco ' + BLOCOS[r.sl.idx] + ' de ' + r.sl.total + ' &middot; ' + r.sl.grupos.length + ' faculdades &middot; ' + r.sl.perfis.length + ' perfis-alvo (particulares primeiro)</p>';
   h += '<div id="banner"></div>';
   h += '<div class="foco"><b>Como operar:</b> ' + esc(conta.foco || FOCO_PADRAO) +
