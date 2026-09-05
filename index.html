@@ -175,10 +175,14 @@
   .dot.pausada { background: var(--warn); }
   .dot.ban { background: #c0453f; }
   .st-sel {
-    font-family: inherit; font-size: 11px; font-weight: 600;
+    font-family: inherit; font-size: 11px; font-weight: 700;
     padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px;
-    background: var(--card); color: var(--muted); margin-top: 4px;
+    background: var(--card); color: var(--muted);
+    margin-left: auto; flex-shrink: 0;
   }
+  .st-sel.ativa { color: var(--teal-ink); border-color: var(--teal); }
+  .st-sel.pausada { color: var(--warn); border-color: var(--warn); }
+  .st-sel.ban { color: #c0453f; border-color: #c0453f; }
   .conta-row.pausada .conta-user, .conta-row.ban .conta-user { opacity: 0.6; }
   .fac-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
@@ -558,13 +562,15 @@ function renderPainel() {
       const r = resumoConta(conta.id);
       const at = atuais(conta.id);
       const st = conta.status || 'ativa';
+      const stSel = podeStatus
+        ? '<select class="st-sel ' + st + '" data-gst="' + esc(conta.id) + '">' +
+          [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
+          '</select>'
+        : '';
       c += '<div class="conta-row ' + st + '" data-conta="' + esc(conta.id) + '">' +
-        '<div class="conta-main"><div class="conta-user" style="display:flex;align-items:center;"><span class="dot ' + st + '" title="' + st + '"></span>' + esc(conta.usuario) + '</div>' +
+        '<div class="conta-main"><div class="conta-user" style="display:flex;align-items:center;gap:2px;"><span class="dot ' + st + '" title="' + st + '"></span>' + esc(conta.usuario) + stSel + '</div>' +
         '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
         (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
-        (podeStatus ? '<select class="st-sel" data-gst="' + esc(conta.id) + '">' +
-          [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
-          '</select>' : '') +
         '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
         '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
     }
