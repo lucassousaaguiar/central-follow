@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1d3557">
+<title>Central de Follow</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231d3557'/%3E%3Ccircle cx='50' cy='50' r='16' fill='%233ABFA0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F7F7;
+    --card: #ffffff;
+    --ink: #1d3557;
+    --muted: #5a6b82;
+    --line: #dfe3e9;
+    --teal: #3ABFA0;
+    --teal-ink: #1d7a64;
+    --teal-soft: #e2f5f0;
+    --navy: #1d3557;
+    --navy-ink: #F7F7F7;
+    --done: #9fb0c4;
+    --warn: #a8741a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a2b;
+      --card: #17253c;
+      --ink: #edf1f6;
+      --muted: #8fa0b5;
+      --line: #2a3a54;
+      --teal: #3ABFA0;
+      --teal-ink: #7adec7;
+      --teal-soft: #16362f;
+      --navy: #122036;
+      --navy-ink: #edf1f6;
+      --done: #55677f;
+      --warn: #d9a441;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px 80px; }
+  header.top {
+    background: var(--navy);
+    color: #F7F7F7;
+    position: sticky; top: 0; z-index: 10;
+    padding-top: env(safe-area-inset-top);
+  }
+  .top-in {
+    max-width: 640px; margin: 0 auto;
+    padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .brand {
+    font-weight: 800; font-size: 16px; letter-spacing: -0.02em; white-space: nowrap;
+    background: none; border: 0; color: inherit; font-family: inherit; cursor: pointer; padding: 0;
+  }
+  .brand span.mark { color: var(--teal); }
+  .brand .suffix { font-weight: 500; opacity: 0.7; font-size: 13px; }
+  @media (max-width: 480px) { .brand .suffix { display: none; } }
+  .who-chip {
+    font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.12);
+    padding: 6px 12px; border-radius: 999px;
+    cursor: pointer; border: 0; color: inherit; font-family: inherit;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.24em; color: var(--teal-ink); margin: 26px 0 10px;
+  }
+  h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin: 24px 0 4px; text-wrap: balance; }
+  h2 { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+  .sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .cel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+  .cel-region { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .conta-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0; border-top: 1px solid var(--line);
+    cursor: pointer;
+  }
+  .conta-row:first-of-type { border-top: 0; }
+  .conta-main { flex: 1; min-width: 0; }
+  .conta-user { font-weight: 600; font-size: 15px; }
+  .conta-meta { font-size: 12px; color: var(--muted); }
+  .conta-atual { font-size: 12px; color: var(--teal-ink); font-weight: 600; }
+  .pbar { height: 5px; background: var(--line); border-radius: 999px; margin-top: 7px; overflow: hidden; }
+  .pbar > div { height: 100%; background: var(--teal); border-radius: 999px; }
+  .pct { font-size: 12px; font-weight: 600; color: var(--teal-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .arrow { color: var(--teal); font-weight: 800; }
+  .back {
+    background: none; border: 0; color: var(--teal-ink); font-family: inherit;
+    font-weight: 600; font-size: 13px; padding: 0; cursor: pointer; margin-top: 18px;
+  }
+  .statbar { display: flex; gap: 10px; margin: 14px 0; }
+  .stat {
+    flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .stat .n { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.14em; font-weight: 600; }
+  .foco {
+    background: var(--teal-soft); border: 1px solid var(--teal);
+    border-radius: 10px; padding: 12px 14px; font-size: 13px; margin: 0 0 14px;
+  }
+  .foco b { color: var(--teal-ink); }
+  .atual-banner {
+    background: var(--navy); color: #F7F7F7;
+    border-radius: 10px; padding: 12px 14px; margin: 0 0 14px;
+  }
+  .atual-banner .tag {
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--teal); display: block; margin-bottom: 4px;
+  }
+  .atual-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.12);
+  }
+  .atual-item:first-of-type { border-top: 0; }
+  .atual-item .h { font-weight: 800; font-size: 15px; flex: 1; min-width: 0; word-break: break-all; }
+  .atual-banner .btn { padding: 7px 12px; }
+  .fac-head {
+    position: relative;
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--teal-ink);
+    padding: 14px 26px 4px 0; border-top: 2px solid var(--line); margin-top: 8px;
+    cursor: pointer; user-select: none;
+  }
+  .fac-head:first-child { border-top: 0; margin-top: 0; }
+  .fac-head small { display: block; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--muted); }
+  .fac-head .caret {
+    position: absolute; right: 2px; top: 16px;
+    color: var(--muted); font-size: 13px;
+    transition: transform 0.15s; display: inline-block;
+  }
+  .fac-head.fechado .caret { transform: rotate(-90deg); }
+  .fac-badge {
+    display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
+    border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px;
+    margin-left: 8px; color: var(--muted); vertical-align: 2px;
+  }
+  .fac-badge.part { color: var(--teal-ink); border-color: var(--teal); background: var(--teal-soft); }
+  .tools { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .search, .campo {
+    flex: 1; min-width: 160px;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: var(--card); color: var(--ink);
+  }
+  .search:focus, .campo:focus { outline: none; border-color: var(--teal); }
+  .idx, .sel {
+    width: 100%;
+    padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: var(--card); color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .sel { width: auto; margin-bottom: 0; padding: 7px 10px; font-size: 12px; }
+  .btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    padding: 10px 14px; border-radius: 8px; cursor: pointer;
+  }
+  .btn.primary { background: var(--teal); border-color: var(--teal); color: #0d2b23; }
+  .btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip {
+    font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    cursor: pointer; font-family: inherit;
+  }
+  .chip.on { background: var(--navy); color: #F7F7F7; border-color: var(--navy); }
+  .perfil {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 0; border-top: 1px solid var(--line);
+  }
+  .perfil input[type="checkbox"] {
+    width: 22px; height: 22px; margin-top: 2px;
+    accent-color: var(--teal); cursor: pointer; flex-shrink: 0;
+  }
+  .perfil .info { flex: 1; min-width: 0; }
+  .perfil a { color: var(--ink); font-weight: 600; text-decoration: none; font-size: 15px; word-break: break-all; }
+  .perfil a:hover { color: var(--teal-ink); }
+  .perfil .meta { font-size: 12px; color: var(--muted); }
+  .perfil .meta .warn { color: var(--warn); font-weight: 600; }
+  .perfil.done a { color: var(--done); text-decoration: line-through; font-weight: 500; }
+  .perfil.done .meta { color: var(--done); }
+  .perfil.desc { opacity: 0.55; }
+  .perfil.desc a { color: var(--done); text-decoration: line-through; font-weight: 500; }
+  .perfil.atual {
+    background: var(--teal-soft);
+    border-top: 0;
+    border-left: 3px solid var(--teal);
+    border-radius: 6px;
+    padding: 11px 10px;
+    margin: 4px -10px;
+  }
+  .pill {
+    display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--teal-ink);
+    background: var(--card); border: 1px solid var(--teal);
+    padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: 2px;
+  }
+  .pill.off { color: var(--muted); border-color: var(--line); }
+  .acts { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
+  .minibtn {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    font-family: inherit; font-size: 11px; font-weight: 700;
+    padding: 7px 10px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .minibtn.go { color: var(--teal-ink); border-color: var(--teal); }
+  .minibtn.fim { background: var(--teal); border-color: var(--teal); color: #0d2b23; }
+  .bk-area {
+    width: 100%; min-height: 64px; margin-top: 10px;
+    border: 1px solid var(--line); border-radius: 8px; padding: 10px;
+    font-family: monospace; font-size: 11px; background: var(--bg); color: var(--ink);
+    word-break: break-all;
+  }
+  .topo {
+    position: fixed; right: 16px; bottom: 20px; z-index: 40;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--navy); color: #F7F7F7;
+    border: 0; font-size: 18px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: #F7F7F7;
+    padding: 10px 18px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 50;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 16px; }
+  .erro { color: #b3413c; font-size: 13px; font-weight: 600; margin-top: 10px; }
+  .login-box { max-width: 380px; margin: 48px auto 0; }
+  .login-box .campo { width: 100%; min-width: 0; margin-bottom: 10px; }
+  .g-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .g-row label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  a { color: var(--teal-ink); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <button class="brand" id="brandBtn" title="Início">publica<span class="mark">MED</span>.<span class="suffix"> &middot; Central de Follow</span></button>
+    <button class="who-chip" id="whoChip" hidden></button>
+  </div>
+</header>
+
+<div class="wrap" id="app"><p class="note" style="text-align:center;padding-top:40px;">Carregando&hellip;</p></div>
+<button class="topo" id="btnTopo" hidden title="Voltar ao topo">&uarr;</button>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL = 'https://mwtghbwtqknkxwwxtwgi.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13dGdoYnd0cWtua3h3d3h0d2dpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1NzM4MTgsImV4cCI6MjEwNDE0OTgxOH0.nJMzfXMEPhrWcKOwl7wHTj9m38pPEJyFIS8eV28a0jw';
+
+const PERFIS = {"sp-capital":{"nome":"São Paulo (capital)","perfis":[{"h":"@fmusp_oficial","t":"Curso","s":80000,"f":"FMUSP"},{"h":"@comufmusp","t":"Outro","s":16600,"f":"FMUSP"},{"h":"@aaaoc","t":"Atlética","s":13600,"f":"FMUSP"},{"h":"@caoc_medusp","t":"CA/DA","s":8373,"f":"FMUSP"},{"h":"@dcfmusp","t":"Outro","s":7357,"f":"FMUSP"},{"h":"@liga.neurocirurgia.fmusp","t":"Liga","s":5279,"f":"FMUSP"},{"h":"@lcphcfmusp","t":"Liga","s":3331,"f":"FMUSP","i":1},{"h":"@revistademedicina","t":"Outro","s":2453,"f":"FMUSP"},{"h":"@atletismo.medusp","t":"Outro","s":1751,"f":"FMUSP"},{"h":"@ligacirurgia.fmusp","t":"Liga","s":1711,"f":"FMUSP"},{"h":"@basquetemed","t":"Outro","s":1070,"f":"FMUSP","i":1},{"h":"@ligacardiologia.fmusp","t":"Liga","s":1021,"f":"FMUSP","d":1},{"h":"@lcct_fmusp","t":"Liga","s":961,"f":"FMUSP","i":1},{"h":"@ligacirurgiaplastica_fmusp","t":"Liga","s":892,"f":"FMUSP","i":1},{"h":"@ligaccp.fmusp","t":"Liga","s":814,"f":"FMUSP"},{"h":"@lac.fmusp","t":"Liga","s":767,"f":"FMUSP"},{"h":"@karatemedicinausp","t":"Outro","s":529,"f":"FMUSP"},{"h":"@ligademedicinaesportivafmusp","t":"Liga","s":514,"f":"FMUSP","d":1},{"h":"@ligacg.fmusp","t":"Liga","s":467,"f":"FMUSP"},{"h":"@tenoc_medusp","t":"Outro","s":457,"f":"FMUSP","i":1},{"h":"@liga_fisiatria_fmusp","t":"Liga","s":291,"f":"FMUSP","d":1},{"h":"@ligadermatologia.fmusp","t":"Liga","s":259,"f":"FMUSP","d":1},{"h":"@mednaescola","t":"Outro","s":229,"f":"FMUSP","i":1},{"h":"@epmunifesp","t":"Curso","s":18800,"f":"UNIFESP"},{"h":"@voluntariado.epm","t":"Outro","s":10300,"f":"UNIFESP"},{"h":"@a.a.a.p.b","t":"Atlética","s":8212,"f":"UNIFESP"},{"h":"@hepatounifesp","t":"Outro","s":3027,"f":"UNIFESP","d":1},{"h":"@ligapsiquiatria.epm","t":"Liga","s":2947,"f":"UNIFESP"},{"h":"@lneurocirepm","t":"Liga","s":2675,"f":"UNIFESP"},{"h":"@workshopnaescola","t":"Outro","s":2637,"f":"UNIFESP","d":1},{"h":"@b51.aaapb","t":"Bateria","s":2254,"f":"UNIFESP"},{"h":"@capb.unifesp","t":"CA/DA","s":2166,"f":"UNIFESP"},{"h":"@extensaoepm","t":"Outro","s":1832,"f":"UNIFESP"},{"h":"@ligainfectoped.epm","t":"Liga","s":1369,"f":"UNIFESP","i":1},{"h":"@nadadi.aaapb","t":"Atlética","s":1165,"f":"UNIFESP"},{"h":"@lmbe.epm","t":"Liga","s":1130,"f":"UNIFESP"},{"h":"@atletismoaaapb","t":"Atlética","s":1110,"f":"UNIFESP"},{"h":"@lacete.epm","t":"Liga","s":1095,"f":"UNIFESP"},{"h":"@fisfi.aaapb","t":"Atlética","s":1064,"f":"UNIFESP","i":1},{"h":"@handebolepm","t":"Atlética","s":978,"f":"UNIFESP"},{"h":"@bf.aaapb","t":"Atlética","s":911,"f":"UNIFESP"},{"h":"@lae.epm","t":"Liga","s":897,"f":"UNIFESP"},{"h":"@vf.aaapb","t":"Atlética","s":891,"f":"UNIFESP"},{"h":"@hf.aaapb","t":"Atlética","s":864,"f":"UNIFESP"},{"h":"@lat.epm","t":"Liga","s":826,"f":"UNIFESP","i":1},{"h":"@lami.unifesp","t":"Liga","s":759,"f":"UNIFESP"},{"h":"@bmpaulista","t":"Atlética","s":745,"f":"UNIFESP"},{"h":"@fcpaulista.aaapb","t":"Atlética","s":706,"f":"UNIFESP"},{"h":"@tmaaapb","t":"Atlética","s":706,"f":"UNIFESP"},{"h":"@larimepm_unifesp","t":"Liga","s":643,"f":"UNIFESP"},{"h":"@laa_epm","t":"Liga","s":628,"f":"UNIFESP"},{"h":"@fsm.aaapb","t":"Atlética","s":606,"f":"UNIFESP"},{"h":"@judoepm","t":"Atlética","s":601,"f":"UNIFESP","i":1},{"h":"@baseball.epm","t":"Atlética","s":595,"f":"UNIFESP"},{"h":"@lua.epm","t":"Liga","s":592,"f":"UNIFESP"},{"h":"@soft.aaapb","t":"Atlética","s":585,"f":"UNIFESP"},{"h":"@lapbm.epm","t":"Liga","s":581,"f":"UNIFESP"},{"h":"@vmaaapb","t":"Atlética","s":562,"f":"UNIFESP"},{"h":"@lacc.epm","t":"Liga","s":472,"f":"UNIFESP"},{"h":"@lato.epm","t":"Liga","s":457,"f":"UNIFESP"},{"h":"@lamele.unifesp","t":"Liga","s":456,"f":"UNIFESP","i":1},{"h":"@tc.aaapb","t":"Atlética","s":454,"f":"UNIFESP"},{"h":"@chess.aaapb","t":"Atlética","s":389,"f":"UNIFESP"},{"h":"@lamf.epm","t":"Liga","s":342,"f":"UNIFESP","i":1},{"h":"@lacosmi.epm","t":"Liga","s":300,"f":"UNIFESP"},{"h":"@lamena.epm","t":"Liga","s":296,"f":"UNIFESP","d":1,"i":1},{"h":"@medicinabelavista","t":"Atlética","s":3553,"f":"USCS"},{"h":"@cameauscs","t":"CA/DA","s":1371,"f":"USCS"},{"h":"@lojinha.medbelavista","t":"Outro","s":1271,"f":"USCS"},{"h":"@medicina_uscsbvsp","t":"Curso","s":1197,"f":"USCS"},{"h":"@lasmbelavista","t":"Liga","s":1170,"f":"USCS"},{"h":"@bateriabelabrisa.medbv","t":"Bateria","s":1048,"f":"USCS"},{"h":"@lamiuscsbv","t":"Liga","s":621,"f":"USCS"},{"h":"@laenuscs","t":"Liga","s":600,"f":"USCS"},{"h":"@t3belavista","t":"Turma","s":550,"f":"USCS","i":1},{"h":"@larccbv","t":"Liga","s":520,"f":"USCS"},{"h":"@t5belavista","t":"Turma","s":515,"f":"USCS"},{"h":"@lamespuscs","t":"Liga","s":509,"f":"USCS","i":1},{"h":"@laff.uscs","t":"Liga","s":393,"f":"USCS"},{"h":"@laa.uscsbv","t":"Liga","s":380,"f":"USCS"},{"h":"@lagescam.uscs","t":"Liga","s":279,"f":"USCS","i":1},{"h":"@t9belavista","t":"Turma","s":243,"f":"USCS"},{"h":"@t7belavista","t":"Turma","s":217,"f":"USCS"},{"h":"@t11belavista","t":"Turma","s":210,"f":"USCS"},{"h":"@t12belavista","t":"Turma","s":163,"f":"USCS","d":1},{"h":"@ligatrauma.fcmscsp","t":"Liga","s":6705,"f":"FCMSCSP","pr":1},{"h":"@aaama.sc","t":"Atlética","s":6348,"f":"FCMSCSP","pr":1},{"h":"@dsm.santacasa","t":"Outro","s":4130,"f":"FCMSCSP","pr":1,"d":1},{"h":"@cama.santacasa","t":"CA/DA","s":4071,"f":"FCMSCSP","pr":1},{"h":"@peca.santacasa","t":"Outro","s":3932,"f":"FCMSCSP","pr":1,"d":1},{"h":"@dcmasc","t":"Outro","s":2651,"f":"FCMSCSP","pr":1},{"h":"@lnc_fcmscsp","t":"Liga","s":1629,"f":"FCMSCSP","pr":1},{"h":"@ligadiabetes.fcmscsp","t":"Liga","s":1013,"f":"FCMSCSP","pr":1},{"h":"@ligacirgeral.santacasa","t":"Liga","s":938,"f":"FCMSCSP","pr":1},{"h":"@ligaplastica_santacasa","t":"Liga","s":913,"f":"FCMSCSP","pr":1},{"h":"@lto.santacasasp","t":"Liga","s":749,"f":"FCMSCSP","pr":1},{"h":"@ligaprop.santacasa","t":"Liga","s":710,"f":"FCMSCSP","pr":1},{"h":"@liga.urosanta","t":"Liga","s":697,"f":"FCMSCSP","pr":1},{"h":"@ligaotorrinosc","t":"Liga","s":624,"f":"FCMSCSP","pr":1},{"h":"@clevsantacasa","t":"Outro","s":557,"f":"FCMSCSP","pr":1,"d":1,"i":1},{"h":"@lcmi_santacasa","t":"Liga","s":550,"f":"FCMSCSP","pr":1},{"h":"@liga_transplantes_sta_casa","t":"Liga","s":null,"f":"FCMSCSP","pr":1,"d":1},{"h":"@dc.ficsae","t":"Outro","s":26300,"f":"FICSAE","pr":1,"d":1},{"h":"@comaae.einstein","t":"Outro","s":12500,"f":"FICSAE","pr":1,"i":1},{"h":"@aaamth.einstein","t":"Atlética","s":9365,"f":"FICSAE","pr":1},{"h":"@caat.einstein","t":"CA/DA","s":4142,"f":"FICSAE","pr":1},{"h":"@esportivas.medeinstein","t":"Outro","s":4102,"f":"FICSAE","pr":1,"i":1},{"h":"@oficina.medeinstein","t":"Outro","s":3507,"f":"FICSAE","pr":1},{"h":"@t10medeinstein","t":"Turma","s":1164,"f":"FICSAE","pr":1},{"h":"@workshop.mmes","t":"Outro","s":1164,"f":"FICSAE","pr":1,"i":1},{"h":"@t15medeinstein","t":"Turma","s":533,"f":"FICSAE","pr":1},{"h":"@t12medeinstein","t":"Turma","s":484,"f":"FICSAE","pr":1,"i":1},{"h":"@t13medeinstein","t":"Turma","s":474,"f":"FICSAE","pr":1},{"h":"@t1medeinstein","t":"Turma","s":468,"f":"FICSAE","pr":1,"i":1},{"h":"@t6medeinstein","t":"Turma","s":462,"f":"FICSAE","pr":1,"i":1},{"h":"@t7medeinstein","t":"Turma","s":445,"f":"FICSAE","pr":1,"i":1},{"h":"@t8medeinstein","t":"Turma","s":437,"f":"FICSAE","pr":1,"i":1},{"h":"@t9medeinstein","t":"Turma","s":402,"f":"FICSAE","pr":1},{"h":"@t5medeinstein","t":"Turma","s":390,"f":"FICSAE","pr":1,"i":1},{"h":"@t2medeinstein","t":"Turma","s":382,"f":"FICSAE","pr":1,"i":1},{"h":"@t11medeinstein","t":"Turma","s":368,"f":"FICSAE","pr":1},{"h":"@t14medeinstein","t":"Turma","s":339,"f":"FICSAE","pr":1},{"h":"@t3medeinstein","t":"Turma","s":334,"f":"FICSAE","pr":1,"i":1},{"h":"@t4medeinstein","t":"Turma","s":293,"f":"FICSAE","pr":1,"i":1},{"h":"@medicinasaocamilo","t":"Atlética","s":4764,"f":"Centro Universitário São Camilo","pr":1},{"h":"@congressocomusc","t":"Outro","s":2961,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lojinha_aaanw","t":"Outro","s":1936,"f":"Centro Universitário São Camilo","pr":1},{"h":"@ligadecardiologiasc","t":"Liga","s":1679,"f":"Centro Universitário São Camilo","pr":1},{"h":"@cirurgiavascular.sc","t":"Liga","s":1599,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lacm_sc","t":"Liga","s":1481,"f":"Centro Universitário São Camilo","pr":1},{"h":"@batucaveira_sc","t":"Bateria","s":1478,"f":"Centro Universitário São Camilo","pr":1},{"h":"@_lapensc","t":"Liga","s":1439,"f":"Centro Universitário São Camilo","pr":1},{"h":"@oncologiasc","t":"Liga","s":1412,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lup.sc","t":"Liga","s":1328,"f":"Centro Universitário São Camilo","pr":1},{"h":"@ifmsabrazil.saocamilo","t":"Outro","s":1299,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@_lamesc","t":"Liga","s":1273,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lunnsc","t":"Liga","s":1273,"f":"Centro Universitário São Camilo","pr":1},{"h":"@ludsc_","t":"Liga","s":1207,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lamiesaocamilo","t":"Liga","s":1202,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@laosc_medsc","t":"Liga","s":1190,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lasm.medsc","t":"Liga","s":1186,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lahhsc","t":"Liga","s":1156,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@esportivoaaanw","t":"Atlética","s":1124,"f":"Centro Universitário São Camilo","pr":1},{"h":"@ligaortopediasc","t":"Liga","s":1116,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lapsc.pneumo","t":"Liga","s":1067,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lami.sc","t":"Liga","s":1017,"f":"Centro Universitário São Camilo","pr":1},{"h":"@projetosocial.aaanw","t":"Outro","s":971,"f":"Centro Universitário São Camilo","pr":1},{"h":"@lacem.sc","t":"Liga","s":883,"f":"Centro Universitário São Camilo","pr":1},{"h":"@medscxxiii","t":"Turma","s":873,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@anatomiaclinicasaocamilo","t":"Liga","s":857,"f":"Centro Universitário São Camilo","pr":1,"d":1},{"h":"@laicc_infecto","t":"Liga","s":842,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@medscxviii","t":"Turma","s":718,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@medscxxviii","t":"Turma","s":649,"f":"Centro Universitário São Camilo","pr":1},{"h":"@ligaclinicamedicasc","t":"Liga","s":635,"f":"Centro Universitário São Camilo","pr":1,"d":1,"i":1},{"h":"@comissaotxxvi","t":"Turma","s":625,"f":"Centro Universitário São Camilo","pr":1},{"h":"@medscxxvii","t":"Turma","s":621,"f":"Centro Universitário São Camilo","pr":1},{"h":"@medscxxiv","t":"Turma","s":610,"f":"Centro Universitário São Camilo","pr":1,"i":1},{"h":"@lmbe.cusc","t":"Liga","s":598,"f":"Centro Universitário São Camilo","pr":1},{"h":"@medscxxvi","t":"Turma","s":94,"f":"Centro Universitário São Camilo","pr":1},{"h":"@atleticamedfasm","t":"Atlética","s":5332,"f":"FASM","pr":1},{"h":"@caaj.fasm","t":"CA/DA","s":2600,"f":"FASM","pr":1},{"h":"@luefasm","t":"Liga","s":2520,"f":"FASM","pr":1},{"h":"@laccp.fasm","t":"Liga","s":1930,"f":"FASM","pr":1},{"h":"@lasm.fasm","t":"Liga","s":1655,"f":"FASM","pr":1},{"h":"@laped.fasm","t":"Liga","s":1648,"f":"FASM","pr":1},{"h":"@lacipfasm","t":"Liga","s":1480,"f":"FASM","pr":1,"d":1,"i":1},{"h":"@laspn.fasm","t":"Liga","s":1365,"f":"FASM","pr":1},{"h":"@auscultabateria","t":"Bateria","s":1352,"f":"FASM","pr":1},{"h":"@laism.fasm","t":"Liga","s":1344,"f":"FASM","pr":1},{"h":"@lacgsm","t":"Liga","s":1327,"f":"FASM","pr":1},{"h":"@linefro.fasm","t":"Liga","s":1319,"f":"FASM","pr":1},{"h":"@ladermsantamarcelina","t":"Liga","s":1242,"f":"FASM","pr":1},{"h":"@lagemfasm","t":"Liga","s":1168,"f":"FASM","pr":1},{"h":"@lacasmfasm","t":"Liga","s":1168,"f":"FASM","pr":1},{"h":"@lamifasm","t":"Liga","s":1159,"f":"FASM","pr":1,"i":1},{"h":"@lacupsm","t":"Liga","s":1143,"f":"FASM","pr":1},{"h":"@loccsantamarcelina","t":"Liga","s":1130,"f":"FASM","pr":1},{"h":"@lapsifasm","t":"Liga","s":1126,"f":"FASM","pr":1},{"h":"@lagg.fasm","t":"Liga","s":1119,"f":"FASM","pr":1},{"h":"@lamac.fasm","t":"Liga","s":1111,"f":"FASM","pr":1},{"h":"@lanci.fasm","t":"Liga","s":1097,"f":"FASM","pr":1},{"h":"@lautre.fasm","t":"Liga","s":1020,"f":"FASM","pr":1},{"h":"@laorl.fasm","t":"Liga","s":1007,"f":"FASM","pr":1},{"h":"@lar_fasm","t":"Liga","s":1002,"f":"FASM","pr":1},{"h":"@fasm.lafac","t":"Liga","s":973,"f":"FASM","pr":1,"i":1},{"h":"@laccsm","t":"Liga","s":933,"f":"FASM","pr":1},{"h":"@lator.fasm","t":"Liga","s":920,"f":"FASM","pr":1},{"h":"@lacvan_sm","t":"Liga","s":919,"f":"FASM","pr":1},{"h":"@linnc.fasm","t":"Liga","s":911,"f":"FASM","pr":1},{"h":"@lmsfasm","t":"Liga","s":909,"f":"FASM","pr":1},{"h":"@lacirp.fasm","t":"Liga","s":880,"f":"FASM","pr":1},{"h":"@lan_fasm","t":"Liga","s":862,"f":"FASM","pr":1,"i":1},{"h":"@lagesmliga","t":"Liga","s":858,"f":"FASM","pr":1},{"h":"@laadifasm","t":"Liga","s":850,"f":"FASM","pr":1},{"h":"@larad.fasm","t":"Liga","s":833,"f":"FASM","pr":1,"i":1},{"h":"@lanapfasm","t":"Liga","s":816,"f":"FASM","pr":1},{"h":"@lara.fasm","t":"Liga","s":812,"f":"FASM","pr":1},{"h":"@lancp.fasm","t":"Liga","s":795,"f":"FASM","pr":1,"i":1},{"h":"@fasmlamel","t":"Liga","s":785,"f":"FASM","pr":1},{"h":"@lacip.fasm","t":"Liga","s":767,"f":"FASM","pr":1},{"h":"@liga.lcm","t":"Liga","s":762,"f":"FASM","pr":1},{"h":"@lahsm.fasm","t":"Liga","s":720,"f":"FASM","pr":1,"d":1},{"h":"@lamfaco","t":"Liga","s":714,"f":"FASM","pr":1},{"h":"@lapsm.fasm","t":"Liga","s":692,"f":"FASM","pr":1},{"h":"@lainf_fasm","t":"Liga","s":688,"f":"FASM","pr":1},{"h":"@laensm.fasm","t":"Liga","s":668,"f":"FASM","pr":1},{"h":"@lacro.fasm","t":"Liga","s":664,"f":"FASM","pr":1},{"h":"@lavic.fasm","t":"Liga","s":661,"f":"FASM","pr":1,"i":1},{"h":"@laap.fasm","t":"Liga","s":584,"f":"FASM","pr":1},{"h":"@laoft.sm","t":"Liga","s":544,"f":"FASM","pr":1},{"h":"@limfasm","t":"Liga","s":542,"f":"FASM","pr":1,"d":1,"i":1},{"h":"@medfasmoficial","t":"Curso","s":533,"f":"FASM","pr":1},{"h":"@comissaot14medfasm","t":"Turma","s":520,"f":"FASM","pr":1,"i":1},{"h":"@lagesfasm","t":"Liga","s":501,"f":"FASM","pr":1},{"h":"@ladto.fasm","t":"Liga","s":470,"f":"FASM","pr":1},{"h":"@lachbp","t":"Liga","s":448,"f":"FASM","pr":1,"i":1},{"h":"@laes.fasm","t":"Liga","s":403,"f":"FASM","pr":1,"i":1},{"h":"@lascfasm","t":"Liga","s":390,"f":"FASM","pr":1},{"h":"@aaajdd","t":"Atlética","s":8585,"f":"UNISA","pr":1},{"h":"@carma.fmsa","t":"CA/DA","s":5462,"f":"UNISA","pr":1},{"h":"@ligacardiologiafmsa","t":"Liga","s":3108,"f":"UNISA","pr":1},{"h":"@lacg.fmsa","t":"Liga","s":1866,"f":"UNISA","pr":1},{"h":"@lifem.fmsa","t":"Liga","s":1400,"f":"UNISA","pr":1},{"h":"@lacmfmsa","t":"Liga","s":1377,"f":"UNISA","pr":1},{"h":"@ligaanatomiafmsa","t":"Liga","s":1267,"f":"UNISA","pr":1},{"h":"@lsa_fmsa","t":"Liga","s":1039,"f":"UNISA","pr":1},{"h":"@lami.fmsa","t":"Liga","s":947,"f":"UNISA","pr":1,"i":1},{"h":"@lainf.fmsa","t":"Liga","s":586,"f":"UNISA","pr":1},{"h":"@laemed.fmsa","t":"Liga","s":248,"f":"UNISA","pr":1},{"h":"@medarte.fmsa","t":"Liga","s":246,"f":"UNISA","pr":1,"i":1},{"h":"@lar.fmsa","t":"Liga","s":237,"f":"UNISA","pr":1},{"h":"@ligadeclinicamedicaunicid","t":"Liga","s":9094,"f":"UNICID","pr":1},{"h":"@medicinaunicid","t":"Atlética","s":6798,"f":"UNICID","pr":1},{"h":"@linuc.unicid","t":"Liga","s":6096,"f":"UNICID","pr":1},{"h":"@camu.unicid","t":"CA/DA","s":3468,"f":"UNICID","pr":1},{"h":"@unicid.lac","t":"Liga","s":3011,"f":"UNICID","pr":1},{"h":"@ligapediatriaunicid","t":"Liga","s":1812,"f":"UNICID","pr":1},{"h":"@lacgt.unicid","t":"Liga","s":1667,"f":"UNICID","pr":1},{"h":"@lojinha.medunicid","t":"Outro","s":1544,"f":"UNICID","pr":1},{"h":"@med.unicid","t":"Curso","s":1503,"f":"UNICID","pr":1},{"h":"@laomeunicid","t":"Liga","s":1374,"f":"UNICID","pr":1},{"h":"@baterialeoes","t":"Bateria","s":1361,"f":"UNICID","pr":1},{"h":"@laderm.unicid","t":"Liga","s":1208,"f":"UNICID","pr":1},{"h":"@limieu","t":"Liga","s":1151,"f":"UNICID","pr":1,"i":1},{"h":"@ligamfc.unicid","t":"Liga","s":1027,"f":"UNICID","pr":1},{"h":"@medunicidt31","t":"Turma","s":558,"f":"UNICID","pr":1},{"h":"@medunicid33","t":"Turma","s":529,"f":"UNICID","pr":1},{"h":"@medunicidxxvi","t":"Turma","s":511,"f":"UNICID","pr":1,"i":1},{"h":"@lardiunicid","t":"Liga","s":503,"f":"UNICID","pr":1,"i":1},{"h":"@lagob_unic","t":"Liga","s":null,"f":"UNICID","pr":1,"d":1},{"h":"@lcp.unicid","t":"Liga","s":null,"f":"UNICID","pr":1,"d":1},{"h":"@med9dejulho","t":"Atlética","s":9062,"f":"UNINOVE","pr":1},{"h":"@comauninove","t":"Outro","s":5853,"f":"UNINOVE","pr":1},{"h":"@cactimed9","t":"CA/DA","s":5340,"f":"UNINOVE","pr":1},{"h":"@liganeuromed9","t":"Liga","s":2902,"f":"UNINOVE","pr":1},{"h":"@ligasmed9vergueiro","t":"CA/DA","s":2485,"f":"UNINOVE","pr":1},{"h":"@lamemed9","t":"Liga","s":2433,"f":"UNINOVE","pr":1},{"h":"@ligagomed9","t":"Liga","s":2255,"f":"UNINOVE","pr":1},{"h":"@ligacardiologiamed9","t":"Liga","s":2090,"f":"UNINOVE","pr":1},{"h":"@lageismed9","t":"Liga","s":2035,"f":"UNINOVE","pr":1,"i":1},{"h":"@ligamedlegal_uni9","t":"Liga","s":2031,"f":"UNINOVE","pr":1},{"h":"@ligadermatologiamed9","t":"Liga","s":2009,"f":"UNINOVE","pr":1},{"h":"@ligapsiquiatriamed9","t":"Liga","s":1855,"f":"UNINOVE","pr":1},{"h":"@ligadepediatriamed9","t":"Liga","s":1727,"f":"UNINOVE","pr":1},{"h":"@liganeonatologiamed9","t":"Liga","s":1719,"f":"UNINOVE","pr":1},{"h":"@lacpedmed9","t":"Liga","s":1681,"f":"UNINOVE","pr":1},{"h":"@lacmed9","t":"Liga","s":1673,"f":"UNINOVE","pr":1},{"h":"@lamee.med9","t":"Liga","s":1668,"f":"UNINOVE","pr":1},{"h":"@ligautimed9","t":"Liga","s":1663,"f":"UNINOVE","pr":1},{"h":"@ligadotraumamed9","t":"Liga","s":1649,"f":"UNINOVE","pr":1,"i":1},{"h":"@lacvc.med9","t":"Liga","s":1639,"f":"UNINOVE","pr":1},{"h":"@ligadeortopediamed9","t":"Liga","s":1613,"f":"UNINOVE","pr":1},{"h":"@ligadetoxicologiamed9","t":"Liga","s":1601,"f":"UNINOVE","pr":1,"i":1},{"h":"@batukongmed9","t":"Bateria","s":1560,"f":"UNINOVE","pr":1},{"h":"@ligaclinicamed9","t":"Liga","s":1548,"f":"UNINOVE","pr":1},{"h":"@ligadegastromed9","t":"Liga","s":1525,"f":"UNINOVE","pr":1},{"h":"@ligaendocrinomed9","t":"Liga","s":1473,"f":"UNINOVE","pr":1},{"h":"@mensalidademed9","t":"CA/DA","s":1280,"f":"UNINOVE","pr":1},{"h":"@liccapmed9","t":"Liga","s":1206,"f":"UNINOVE","pr":1},{"h":"@ligamfcmed9","t":"Liga","s":1200,"f":"UNINOVE","pr":1},{"h":"@laaimed9","t":"Liga","s":1167,"f":"UNINOVE","pr":1},{"h":"@ligadefarmacomed9","t":"Liga","s":1166,"f":"UNINOVE","pr":1},{"h":"@comissaoda33","t":"Turma","s":1165,"f":"UNINOVE","pr":1},{"h":"@pe.med9","t":"CA/DA","s":1136,"f":"UNINOVE","pr":1},{"h":"@comissaodatrintaedois","t":"Turma","s":1104,"f":"UNINOVE","pr":1},{"h":"@atletismomed9","t":"Atlética","s":1099,"f":"UNINOVE","pr":1},{"h":"@lojinha.cacti","t":"Outro","s":1098,"f":"UNINOVE","pr":1},{"h":"@ligadeoftalmologiamed9","t":"Liga","s":1055,"f":"UNINOVE","pr":1},{"h":"@laonpmed9","t":"Liga","s":1053,"f":"UNINOVE","pr":1},{"h":"@clevergueiro","t":"Outro","s":1037,"f":"UNINOVE","pr":1,"i":1},{"h":"@lahmmed9","t":"Liga","s":1033,"f":"UNINOVE","pr":1},{"h":"@ligamedicinadoadolescente","t":"Liga","s":950,"f":"UNINOVE","pr":1},{"h":"@lamm.med9","t":"Liga","s":940,"f":"UNINOVE","pr":1},{"h":"@lanu.med9","t":"Liga","s":929,"f":"UNINOVE","pr":1},{"h":"@comissaomedt34","t":"Turma","s":899,"f":"UNINOVE","pr":1},{"h":"@ligadeanestesiomed9","t":"Liga","s":874,"f":"UNINOVE","pr":1},{"h":"@semanacirurgica","t":"Outro","s":874,"f":"UNINOVE","pr":1,"i":1},{"h":"@primatas.med9","t":"Atlética","s":791,"f":"UNINOVE","pr":1},{"h":"@futcampomed9","t":"Atlética","s":745,"f":"UNINOVE","pr":1,"i":1},{"h":"@ligageromed9","t":"Liga","s":667,"f":"UNINOVE","pr":1},{"h":"@t28med9","t":"Turma","s":653,"f":"UNINOVE","pr":1,"i":1},{"h":"@lacemed9","t":"Liga","s":621,"f":"UNINOVE","pr":1},{"h":"@ladotuni9","t":"Liga","s":577,"f":"UNINOVE","pr":1},{"h":"@med9turma33","t":"Turma","s":481,"f":"UNINOVE","pr":1,"i":1},{"h":"@ligadehematologiamed9","t":"Liga","s":479,"f":"UNINOVE","pr":1},{"h":"@laphmed9","t":"Liga","s":478,"f":"UNINOVE","pr":1},{"h":"@camed9","t":"Outro","s":461,"f":"UNINOVE","pr":1,"i":1},{"h":"@comissaomed35","t":"Turma","s":456,"f":"UNINOVE","pr":1},{"h":"@turmaxviii.med9","t":"Turma","s":285,"f":"UNINOVE","pr":1,"i":1},{"h":"@medicinaanhembi","t":"Atlética","s":5976,"f":"UAM","pr":1},{"h":"@med.anhembi","t":"Curso","s":2842,"f":"UAM","pr":1},{"h":"@lanefuam","t":"Liga","s":1795,"f":"UAM","pr":1,"i":1},{"h":"@lojinhamedanhembi","t":"Outro","s":1707,"f":"UAM","pr":1},{"h":"@_bateriacachorroloko","t":"Bateria","s":1637,"f":"UAM","pr":1},{"h":"@ladermuam","t":"Liga","s":1545,"f":"UAM","pr":1},{"h":"@dastuam","t":"CA/DA","s":1517,"f":"UAM","pr":1},{"h":"@lapctuam","t":"Liga","s":1405,"f":"UAM","pr":1},{"h":"@lacipuam","t":"Liga","s":1402,"f":"UAM","pr":1},{"h":"@lcguam","t":"Liga","s":1402,"f":"UAM","pr":1},{"h":"@geriatriauam","t":"Liga","s":1368,"f":"UAM","pr":1},{"h":"@laoanhembi","t":"Liga","s":1329,"f":"UAM","pr":1},{"h":"@ligaclinica","t":"Liga","s":1244,"f":"UAM","pr":1},{"h":"@uremma_uam","t":"Liga","s":1225,"f":"UAM","pr":1},{"h":"@laah.uam","t":"Liga","s":1215,"f":"UAM","pr":1},{"h":"@lannmeduam","t":"Liga","s":1207,"f":"UAM","pr":1},{"h":"@medanhembi","t":"Atlética","s":1197,"f":"UAM","pr":1,"d":1,"i":1},{"h":"@ligadehumanizacao","t":"Liga","s":1165,"f":"UAM","pr":1},{"h":"@laped.uam","t":"Liga","s":1151,"f":"UAM","pr":1},{"h":"@lapsmuam","t":"Liga","s":1122,"f":"UAM","pr":1},{"h":"@lc.uam","t":"Liga","s":1086,"f":"UAM","pr":1},{"h":"@lamfc.uam","t":"Liga","s":1079,"f":"UAM","pr":1},{"h":"@lsm_uam","t":"Liga","s":1005,"f":"UAM","pr":1},{"h":"@laenuam","t":"Liga","s":998,"f":"UAM","pr":1},{"h":"@lasc.uam","t":"Liga","s":994,"f":"UAM","pr":1},{"h":"@loccuam","t":"Liga","s":987,"f":"UAM","pr":1},{"h":"@lamlbiouam","t":"Liga","s":960,"f":"UAM","pr":1},{"h":"@medanhembimorumbi","t":"Outro","s":935,"f":"UAM","pr":1,"d":1},{"h":"@laur.uam","t":"Liga","s":919,"f":"UAM","pr":1},{"h":"@lahuam","t":"Liga","s":881,"f":"UAM","pr":1,"i":1},{"h":"@liaghuam","t":"Liga","s":870,"f":"UAM","pr":1},{"h":"@laciveuam","t":"Liga","s":844,"f":"UAM","pr":1},{"h":"@meduam.txiv","t":"Turma","s":683,"f":"UAM","pr":1},{"h":"@laciped.uam","t":"Liga","s":667,"f":"UAM","pr":1},{"h":"@lar_uam","t":"Liga","s":597,"f":"UAM","pr":1},{"h":"@atlmedanhembi","t":"Outro","s":597,"f":"UAM","pr":1},{"h":"@liameeuam","t":"Liga","s":593,"f":"UAM","pr":1},{"h":"@comissaomedanhembit9","t":"Turma","s":552,"f":"UAM","pr":1,"d":1,"i":1},{"h":"@aaamam.esportivo","t":"Atlética","s":506,"f":"UAM","pr":1,"i":1},{"h":"@larhuamliga","t":"Liga","s":499,"f":"UAM","pr":1},{"h":"@ladto.uam","t":"Liga","s":484,"f":"UAM","pr":1},{"h":"@meduam.txv","t":"Turma","s":423,"f":"UAM","pr":1},{"h":"@meduam.txvi","t":"Turma","s":395,"f":"UAM","pr":1},{"h":"@loft.uam","t":"Liga","s":385,"f":"UAM","pr":1},{"h":"@oftalmoliga_uam","t":"Liga","s":309,"f":"UAM","pr":1,"d":1,"i":1},{"h":"@lpcml.uam","t":"Liga","s":234,"f":"UAM","pr":1,"i":1},{"h":"@comissaotxviii_","t":"Turma","s":225,"f":"UAM","pr":1},{"h":"@meduamtxvii","t":"Turma","s":192,"f":"UAM","pr":1},{"h":"@lamsuam","t":"Liga","s":139,"f":"UAM","pr":1,"i":1},{"h":"@meduam.txix","t":"Turma","s":135,"f":"UAM","pr":1},{"h":"@ladoruam","t":"Liga","s":127,"f":"UAM","pr":1},{"h":"@atleticamedfam","t":"Atlética","s":3185,"f":"FAM","pr":1},{"h":"@laigofam","t":"Liga","s":1378,"f":"FAM","pr":1,"i":1},{"h":"@camedfam","t":"CA/DA","s":1360,"f":"FAM","pr":1},{"h":"@lamet.fam","t":"Liga","s":1309,"f":"FAM","pr":1,"i":1},{"h":"@lcpfam","t":"Liga","s":1141,"f":"FAM","pr":1,"i":1},{"h":"@ifmsabrazil_fam","t":"Outro","s":1085,"f":"FAM","pr":1,"i":1},{"h":"@dcmedfam","t":"Outro","s":1077,"f":"FAM","pr":1},{"h":"@laminfam","t":"Liga","s":1047,"f":"FAM","pr":1,"i":1},{"h":"@lc_fam","t":"Liga","s":901,"f":"FAM","pr":1,"i":1},{"h":"@lacmfam","t":"Liga","s":785,"f":"FAM","pr":1,"i":1},{"h":"@bateriatapana.pantera","t":"Bateria","s":706,"f":"FAM","pr":1,"i":1},{"h":"@limes_fam","t":"Liga","s":693,"f":"FAM","pr":1,"i":1},{"h":"@liscfam","t":"Liga","s":682,"f":"FAM","pr":1,"i":1},{"h":"@liaderma_fam","t":"Liga","s":337,"f":"FAM","pr":1,"i":1},{"h":"@lorl.fam","t":"Liga","s":323,"f":"FAM","pr":1,"i":1},{"h":"@lojinhamedfam","t":"Outro","s":318,"f":"FAM","pr":1,"i":1},{"h":"@dcmed_fam","t":"Outro","s":167,"f":"FAM","pr":1,"i":1},{"h":"@lame.fam","t":"Liga","s":80,"f":"FAM","pr":1,"i":1}]},"bh":{"nome":"BH e Grande BH","perfis":[{"h":"@facmedicinaufmg","t":"Curso","s":28400,"f":"UFMG"},{"h":"@daab.ufmg","t":"CA/DA","s":7883,"f":"UFMG"},{"h":"@conclaveufmg","t":"Atlética","s":6411,"f":"UFMG"},{"h":"@neuroligaufmg","t":"Liga","s":3977,"f":"UFMG"},{"h":"@laf.ufmg","t":"Liga","s":3806,"f":"UFMG"},{"h":"@liascufmg","t":"Liga","s":3305,"f":"UFMG","d":1},{"h":"@awsufmg","t":"Liga","s":3180,"f":"UFMG"},{"h":"@psicoseufmg","t":"Bateria","s":3031,"f":"UFMG"},{"h":"@clevufmg","t":"Outro","s":2743,"f":"UFMG","d":1},{"h":"@showmedicinaufmg","t":"Outro","s":2690,"f":"UFMG"},{"h":"@lapsiqufmg","t":"Liga","s":2485,"f":"UFMG"},{"h":"@geni.ufmg","t":"Outro","s":2131,"f":"UFMG","d":1},{"h":"@lacufmg","t":"Liga","s":2026,"f":"UFMG"},{"h":"@lanacmg","t":"Liga","s":2017,"f":"UFMG"},{"h":"@lojinhacmd","t":"Outro","s":2002,"f":"UFMG"},{"h":"@laohufmg","t":"Liga","s":1937,"f":"UFMG","i":1},{"h":"@ageralratorcida","t":"Outro","s":1885,"f":"UFMG"},{"h":"@lamfac.ufmg","t":"Liga","s":1747,"f":"UFMG"},{"h":"@colarufmg","t":"Outro","s":1467,"f":"UFMG","d":1},{"h":"@laneufmg","t":"Liga","s":1316,"f":"UFMG"},{"h":"@comed162","t":"Turma","s":1313,"f":"UFMG"},{"h":"@diretucada","t":"Bateria","s":1212,"f":"UFMG"},{"h":"@comed159","t":"Turma","s":1072,"f":"UFMG","i":1},{"h":"@produtos.daab","t":"Outro","s":1068,"f":"UFMG","i":1},{"h":"@laped_ufmg","t":"Liga","s":1044,"f":"UFMG"},{"h":"@comed163","t":"Turma","s":1042,"f":"UFMG","i":1},{"h":"@comed165","t":"Turma","s":1011,"f":"UFMG"},{"h":"@comed157","t":"Turma","s":984,"f":"UFMG","i":1},{"h":"@comed164","t":"Turma","s":980,"f":"UFMG"},{"h":"@comed.166","t":"Turma","s":979,"f":"UFMG"},{"h":"@comedclvi","t":"Turma","s":976,"f":"UFMG","i":1},{"h":"@comed158","t":"Turma","s":975,"f":"UFMG","i":1},{"h":"@comed161","t":"Turma","s":967,"f":"UFMG"},{"h":"@comed160","t":"Turma","s":938,"f":"UFMG"},{"h":"@atletismo.medufmg","t":"Outro","s":923,"f":"UFMG"},{"h":"@comed.167","t":"Turma","s":805,"f":"UFMG"},{"h":"@comed.168","t":"Turma","s":683,"f":"UFMG"},{"h":"@comed.170","t":"Turma","s":654,"f":"UFMG"},{"h":"@153comed","t":"Turma","s":583,"f":"UFMG","i":1},{"h":"@comed169","t":"Turma","s":493,"f":"UFMG"},{"h":"@daledale145","t":"Turma","s":359,"f":"UFMG","i":1},{"h":"@coletivocinturafina","t":"Outro","s":null,"f":"UFMG","d":1},{"h":"@liapec.ufmg","t":"Pesquisa Científica (LIAPEC)","s":3071,"f":"UFMG"},{"h":"@ligadiabetes.ufmg","t":"Diabetes (LAD)","s":3008,"f":"UFMG"},{"h":"@ligadotraumamg","t":"Trauma de Minas (LAT-MG)","s":2564,"f":"UFMG"},{"h":"@laem.ufmg","t":"Endocrinologia e Metabologia (LAEM)","s":2164,"f":"UFMG"},{"h":"@laclinica.ufmg","t":"Clínica Médica","s":1814,"f":"UFMG"},{"h":"@lasexufmg","t":"Sexologia (LASEX)","s":1742,"f":"UFMG"},{"h":"@lassufmg","t":"Simulação em Saúde (LASS)","s":1719,"f":"UFMG"},{"h":"@lcct.ufmg","t":"Cirurgia Cardiotorácica (LCCT)","s":1718,"f":"UFMG"},{"h":"@lappaufmg","t":"Psicopatologia e Psicanálise (LAPPA)","s":1556,"f":"UFMG"},{"h":"@lagg.ufmg","t":"Geriatria e Gerontologia (LAGG)","s":1507,"f":"UFMG"},{"h":"@laap.ufmg","t":"Anatomia Patológica (LAAP)","s":1505,"f":"UFMG"},{"h":"@lanpsaufmg","t":"Neuropsiquiatria no Adulto (LANPSA)","s":1479,"f":"UFMG"},{"h":"@lagisufmg","t":"Gestão e Inovação em Saúde (LAGIS)","s":1477,"f":"UFMG"},{"h":"@nefroligaufmg","t":"Nefrologia","s":1417,"f":"UFMG"},{"h":"@ufmgladip","t":"Doenças Infecciosas e Parasitárias (LADIP)","s":1376,"f":"UFMG"},{"h":"@lador.ufmg","t":"Dor e Cuidados Paliativos (LADOR)","s":1320,"f":"UFMG"},{"h":"@uroligaufmg","t":"Urologia (UroLiga)","s":1289,"f":"UFMG"},{"h":"@lapiisufmg","t":"Práticas Integrativas (LAPIIS)","s":1279,"f":"UFMG"},{"h":"@imunoliga_ufmg","t":"Imunologia Médica (Imunoliga)","s":1239,"f":"UFMG"},{"h":"@lacipufmg","t":"Cirurgia Plástica (LACIP)","s":1238,"f":"UFMG"},{"h":"@gastroligaufmg","t":"Gastroenterologia e Hepatologia","s":1135,"f":"UFMG"},{"h":"@laoor.ufmg","t":"Oftalmologia e Otorrino (LAOOR)","s":1109,"f":"UFMG"},{"h":"@laspon_ufmg","t":"Saúde da População Negra (LASPON)","s":1061,"f":"UFMG"},{"h":"@lapacufmg","t":"Patologia Clínica (LAPAC)","s":972,"f":"UFMG"},{"h":"@labufmg","t":"Bioética (LAB)","s":907,"f":"UFMG"},{"h":"@ladoc_ufmg","t":"Doenças Congênitas e Genéticas (LADOC)","s":890,"f":"UFMG"},{"h":"@lampsufmg","t":"Medicina e Psicofarmacologia (LAMPS)","s":817,"f":"UFMG"},{"h":"@dermatoliga_ufmg","t":"Dermatologia","s":762,"f":"UFMG"},{"h":"@lahum.ufmg","t":"Humanidades Médicas (LAHUM)","s":737,"f":"UFMG"},{"h":"@lagene.ufmg","t":"Genética Médica (LaGene)","s":709,"f":"UFMG"},{"h":"@lanaufmgoficial","t":"Neonatologia e Aleitamento (LANA)","s":709,"f":"UFMG"},{"h":"@reumatoligaufmg","t":"Reumatologia","s":645,"f":"UFMG"},{"h":"@lamastufmg","t":"Mastologia (Lamast)","s":636,"f":"UFMG"},{"h":"@lamev_ufmg","t":"Medicina do Estilo de Vida (LAMEV)","s":587,"f":"UFMG"},{"h":"@ladrogaufmg","t":"Drogas de Abuso (LADrogA)","s":468,"f":"UFMG"},{"h":"@lidiufmg","t":"Diagnóstico por Imagem (LIDI)","s":309,"f":"UFMG"},{"h":"@lamelp.ufmg","t":"Medicina Legal e Pericial (LAMELP)","s":147,"f":"UFMG"},{"h":"@laome.ufmg","t":"Ortopedia e Medicina do Esporte (LAOME)","s":2490,"f":"UFMG","i":1},{"h":"@lacardioufmg","t":"Ciências Cardiovasculares","s":2356,"f":"UFMG"},{"h":"@paraelas.ufmg","t":"Para Elas — extensão, ensino e pesquisa","s":1074,"f":"UFMG"},{"h":"@liase.ufmg","t":"Saúde e Espiritualidade (Liase)","s":1038,"f":"UFMG","i":1},{"h":"@lapufmg","t":"Pneumologia (LAP)","s":1023,"f":"UFMG","i":1},{"h":"@lacti.medufmg","t":"Cardiologia e Terapia Intensiva (LACTI)","s":878,"f":"UFMG","i":1},{"h":"@lane.ufmg","t":"Anestesiologia","s":403,"f":"UFMG","i":1},{"h":"@starsufmg","t":"Medicina Baseada em Valor (STARS)","s":353,"f":"UFMG","i":1},{"h":"@lasmu.ufmg","t":"Saúde da Mulher (LASMU)","s":268,"f":"UFMG"},{"h":"@nutroligaufmg","t":"Nutrologia (Nutroliga)","s":248,"f":"UFMG","i":1},{"h":"@lanufmg","t":"Nutrologia (LAN)","s":129,"f":"UFMG","d":1},{"h":"@lane_ufmg","t":"Anestesiologia BH (LANE-BH)","s":44,"f":"UFMG","d":1},{"h":"@atleticacienciasmedicas","t":"Atlética","s":6571,"f":"FCMMG / CMMG","pr":1},{"h":"@dalucasmachado","t":"CA/DA","s":3793,"f":"FCMMG / CMMG","pr":1},{"h":"@clevfcmmg","t":"Outro","s":2784,"f":"FCMMG / CMMG","pr":1},{"h":"@oftalmoligafcmmg","t":"Liga","s":2045,"f":"FCMMG / CMMG","pr":1},{"h":"@laemcmmg","t":"Liga","s":1806,"f":"FCMMG / CMMG","pr":1},{"h":"@laorte.fcmmg","t":"Liga","s":1735,"f":"FCMMG / CMMG","pr":1},{"h":"@camfcmmg","t":"Outro","s":1718,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@lanfcmmg","t":"Liga","s":1640,"f":"FCMMG / CMMG","pr":1},{"h":"@lago_mg","t":"Liga","s":1637,"f":"FCMMG / CMMG","pr":1},{"h":"@coagg.fcmmg","t":"Outro","s":1502,"f":"FCMMG / CMMG","pr":1},{"h":"@liamccmmg","t":"Liga","s":1464,"f":"FCMMG / CMMG","pr":1},{"h":"@laplasfcmmg","t":"Liga","s":1428,"f":"FCMMG / CMMG","pr":1},{"h":"@laggcmmg","t":"Liga","s":1398,"f":"FCMMG / CMMG","pr":1},{"h":"@lapnecmmg","t":"Liga","s":1396,"f":"FCMMG / CMMG","pr":1},{"h":"@laurgefcmmg","t":"Liga","s":1387,"f":"FCMMG / CMMG","pr":1},{"h":"@lasm_fcmmg","t":"Liga","s":1386,"f":"FCMMG / CMMG","pr":1},{"h":"@laimcmmg","t":"Liga","s":1323,"f":"FCMMG / CMMG","pr":1},{"h":"@laoncbh","t":"Liga","s":1169,"f":"FCMMG / CMMG","pr":1},{"h":"@laticmmg","t":"Liga","s":1043,"f":"FCMMG / CMMG","pr":1},{"h":"@lasserfcmmg","t":"Liga","s":1029,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao73_","t":"Turma","s":983,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@comissao_74","t":"Turma","s":844,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao71","t":"Turma","s":821,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@lanefrocmmg","t":"Liga","s":802,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao72","t":"Turma","s":801,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@lage_fcmmg","t":"Liga","s":779,"f":"FCMMG / CMMG","pr":1},{"h":"@ladottcmmg","t":"Liga","s":779,"f":"FCMMG / CMMG","pr":1},{"h":"@lacpacmmg","t":"Liga","s":748,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@comissao.78","t":"Turma","s":727,"f":"FCMMG / CMMG","pr":1},{"h":"@ifmsabrazilfcmmg","t":"Outro","s":717,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@comissao.80","t":"Turma","s":711,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao.79","t":"Turma","s":682,"f":"FCMMG / CMMG","pr":1},{"h":"@laclim.fcmmg","t":"Liga","s":678,"f":"FCMMG / CMMG","pr":1},{"h":"@lainfectocmmg","t":"Liga","s":675,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao76","t":"Turma","s":665,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@comissao.81","t":"Turma","s":649,"f":"FCMMG / CMMG","pr":1},{"h":"@laanes_cmmg","t":"Liga","s":611,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao.75","t":"Turma","s":583,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao77","t":"Turma","s":546,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@comissao.83","t":"Turma","s":522,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao.82","t":"Turma","s":516,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao66","t":"Turma","s":469,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@lahemo.fcmmg","t":"Liga","s":468,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao.84","t":"Turma","s":426,"f":"FCMMG / CMMG","pr":1},{"h":"@lahscmmg","t":"Liga","s":381,"f":"FCMMG / CMMG","pr":1},{"h":"@laspone.cmmg","t":"Liga","s":369,"f":"FCMMG / CMMG","pr":1},{"h":"@lamelpecmmg","t":"Liga","s":341,"f":"FCMMG / CMMG","pr":1},{"h":"@laest.cmmg","t":"Liga","s":295,"f":"FCMMG / CMMG","pr":1,"d":1},{"h":"@lapcmmg","t":"Liga","s":274,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg78c","t":"Turma","s":242,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg78a","t":"Turma","s":224,"f":"FCMMG / CMMG","pr":1},{"h":"@comissao.85","t":"Turma","s":210,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg84c","t":"Turma","s":188,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg84b","t":"Turma","s":187,"f":"FCMMG / CMMG","pr":1},{"h":"@lamhcmmg","t":"Liga","s":186,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg78b","t":"Turma","s":181,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg84a","t":"Turma","s":168,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg82a","t":"Turma","s":167,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg83b","t":"Turma","s":166,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg83c","t":"Turma","s":160,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg82b","t":"Turma","s":157,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg85c","t":"Turma","s":154,"f":"FCMMG / CMMG","pr":1},{"h":"@76c_cmmg","t":"Turma","s":152,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg81a","t":"Turma","s":149,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg82c","t":"Turma","s":145,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg83a","t":"Turma","s":144,"f":"FCMMG / CMMG","pr":1,"i":1},{"h":"@cmmg85a","t":"Turma","s":132,"f":"FCMMG / CMMG","pr":1},{"h":"@cmmg85b","t":"Turma","s":125,"f":"FCMMG / CMMG","pr":1},{"h":"@laccime","t":"Liga","s":1,"f":"FCMMG / CMMG","pr":1,"d":1},{"h":"@laanatounibh","t":"Liga","s":3533,"f":"UniBH","pr":1},{"h":"@camedunibh","t":"CA/DA","s":2849,"f":"UniBH","pr":1},{"h":"@laounibh","t":"Liga","s":1383,"f":"UniBH","pr":1},{"h":"@lapunibh","t":"Liga","s":1376,"f":"UniBH","pr":1},{"h":"@lacc.unibh","t":"Liga","s":1358,"f":"UniBH","pr":1},{"h":"@liacounibh","t":"Liga","s":1353,"f":"UniBH","pr":1,"i":1},{"h":"@liac_unibh","t":"Liga","s":1278,"f":"UniBH","pr":1},{"h":"@lamurge_medunibh","t":"Liga","s":1195,"f":"UniBH","pr":1},{"h":"@laote.unibh","t":"Liga","s":1155,"f":"UniBH","pr":1},{"h":"@lannunibh","t":"Liga","s":1120,"f":"UniBH","pr":1,"i":1},{"h":"@laimtunibh","t":"Liga","s":1062,"f":"UniBH","pr":1},{"h":"@laficunibh","t":"Liga","s":1044,"f":"UniBH","pr":1},{"h":"@laclim.mh","t":"Liga","s":1037,"f":"UniBH","pr":1},{"h":"@liascunibh","t":"Liga","s":1035,"f":"UniBH","pr":1,"i":1},{"h":"@liaseunibh","t":"Liga","s":913,"f":"UniBH","pr":1,"i":1},{"h":"@laptunibh","t":"Liga","s":899,"f":"UniBH","pr":1},{"h":"@unibhlador","t":"Liga","s":898,"f":"UniBH","pr":1},{"h":"@laappacunibh","t":"Liga","s":893,"f":"UniBH","pr":1,"i":1},{"h":"@laotounibh","t":"Liga","s":887,"f":"UniBH","pr":1,"i":1},{"h":"@unibh.lasmu","t":"Liga","s":882,"f":"UniBH","pr":1,"i":1},{"h":"@lagemunibh","t":"Liga","s":832,"f":"UniBH","pr":1,"i":1},{"h":"@laplast.unibh","t":"Liga","s":789,"f":"UniBH","pr":1},{"h":"@laprocunibh","t":"Liga","s":708,"f":"UniBH","pr":1,"i":1},{"h":"@lagg.unibh","t":"Liga","s":685,"f":"UniBH","pr":1,"i":1},{"h":"@cogg.unibh","t":"Outro","s":671,"f":"UniBH","pr":1,"i":1},{"h":"@lardim_unibh","t":"Liga","s":664,"f":"UniBH","pr":1},{"h":"@lad_unibh","t":"Liga","s":606,"f":"UniBH","pr":1},{"h":"@lalegsunibh","t":"Liga","s":588,"f":"UniBH","pr":1},{"h":"@lahmesh.unibh","t":"Liga","s":502,"f":"UniBH","pr":1},{"h":"@comissaomedxxii","t":"Turma","s":383,"f":"UniBH","pr":1,"i":1},{"h":"@ecgcursounibh","t":"Outro","s":357,"f":"UniBH","pr":1,"i":1},{"h":"@lojinhacamedunibh","t":"Outro","s":340,"f":"UniBH","pr":1,"i":1},{"h":"@camedcientifico","t":"Outro","s":335,"f":"UniBH","pr":1,"i":1},{"h":"@atleticamedicinaunibh","t":"Atlética","s":null,"f":"UniBH","pr":1},{"h":"@medicina.unibh","t":"Curso","s":null,"f":"UniBH","pr":1},{"h":"@med28unibh","t":"Turma","s":null,"f":"UniBH","pr":1,"d":1},{"h":"@lapsiunibh","t":"Liga","s":null,"f":"UniBH","pr":1},{"h":"@atleticafamedbh","t":"Atlética","s":6046,"f":"FAMINAS-BH","pr":1},{"h":"@oncoligafaminasbh","t":"Liga","s":994,"f":"FAMINAS-BH","pr":1},{"h":"@lacpedfaminasbh","t":"Liga","s":878,"f":"FAMINAS-BH","pr":1},{"h":"@cianosebateria","t":"Bateria","s":876,"f":"FAMINAS-BH","pr":1},{"h":"@lamfec","t":"Liga","s":728,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@ligami.faminas","t":"Liga","s":716,"f":"FAMINAS-BH","pr":1,"d":1},{"h":"@lahus.faminas","t":"Liga","s":706,"f":"FAMINAS-BH","pr":1},{"h":"@lacic.faminasbh","t":"Liga","s":633,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@lago.faminasbh","t":"Liga","s":609,"f":"FAMINAS-BH","pr":1},{"h":"@comissaofamed13","t":"Turma","s":539,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@atletismofamed","t":"Outro","s":506,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@lafemfaminasbh","t":"Liga","s":454,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@lacigfaminas","t":"Liga","s":446,"f":"FAMINAS-BH","pr":1},{"h":"@azulcrinadaorganizada","t":"Outro","s":377,"f":"FAMINAS-BH","pr":1},{"h":"@lamelpfaminasbh","t":"Liga","s":352,"f":"FAMINAS-BH","pr":1,"i":1},{"h":"@cheer_faminasbh","t":"Outro","s":336,"f":"FAMINAS-BH","pr":1},{"h":"@lacigfaminas.bh","t":"Liga","s":244,"f":"FAMINAS-BH","pr":1,"d":1,"i":1},{"h":"@atleticamedfaminasbh","t":"Atlética","s":null,"f":"FAMINAS-BH","pr":1},{"h":"@atleticaunifenasbh","t":"Atlética","s":5721,"f":"UNIFENAS BH","pr":1},{"h":"@dapevunifenasbh","t":"CA/DA","s":2600,"f":"UNIFENAS BH","pr":1},{"h":"@charangapandemia","t":"Bateria","s":1450,"f":"UNIFENAS BH","pr":1},{"h":"@clevunifenasbh","t":"Outro","s":1314,"f":"UNIFENAS BH","pr":1},{"h":"@laomebhunifenas","t":"Liga","s":1286,"f":"UNIFENAS BH","pr":1},{"h":"@lojinhadoursao","t":"Outro","s":1270,"f":"UNIFENAS BH","pr":1},{"h":"@laccunifenasbh","t":"Liga","s":1257,"f":"UNIFENAS BH","pr":1},{"h":"@ladermeunifenas","t":"Liga","s":1222,"f":"UNIFENAS BH","pr":1},{"h":"@laounifenasbh","t":"Liga","s":1155,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas37","t":"Turma","s":837,"f":"UNIFENAS BH","pr":1},{"h":"@liracir.unifenasbh","t":"Liga","s":787,"f":"UNIFENAS BH","pr":1},{"h":"@dermadaybh","t":"Outro","s":730,"f":"UNIFENAS BH","pr":1},{"h":"@lahmunifenas","t":"Liga","s":662,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas35","t":"Turma","s":621,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas33","t":"Turma","s":620,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas34","t":"Turma","s":589,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas36","t":"Turma","s":583,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas40","t":"Turma","s":546,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas41","t":"Turma","s":505,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas42","t":"Turma","s":482,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas38","t":"Turma","s":478,"f":"UNIFENAS BH","pr":1},{"h":"@comissaounifenas36","t":"Turma","s":474,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas43","t":"Turma","s":441,"f":"UNIFENAS BH","pr":1},{"h":"@comissaounifenas37","t":"Turma","s":427,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@comissaounifenas39","t":"Turma","s":369,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas45","t":"Turma","s":363,"f":"UNIFENAS BH","pr":1,"d":1},{"h":"@comissaounifenas35","t":"Turma","s":357,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas39","t":"Turma","s":340,"f":"UNIFENAS BH","pr":1},{"h":"@comissaoturma34_","t":"Turma","s":333,"f":"UNIFENAS BH","pr":1,"d":1,"i":1},{"h":"@medunifenas44","t":"Turma","s":324,"f":"UNIFENAS BH","pr":1},{"h":"@medunifenas47","t":"Turma","s":268,"f":"UNIFENAS BH","pr":1},{"h":"@comissaounifenas38","t":"Turma","s":247,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@medunifenas46","t":"Turma","s":201,"f":"UNIFENAS BH","pr":1},{"h":"@comissaounifenas41","t":"Turma","s":198,"f":"UNIFENAS BH","pr":1,"i":1},{"h":"@comissaounifenas40","t":"Turma","s":175,"f":"UNIFENAS BH","pr":1},{"h":"@atleticamedpucminas","t":"Atlética","s":5347,"f":"PUC Minas","pr":1},{"h":"@medicinapucbetim","t":"Curso","s":3916,"f":"PUC Minas","pr":1},{"h":"@dahmp_mg","t":"CA/DA","s":2197,"f":"PUC Minas","pr":1},{"h":"@lacitpucminas","t":"Liga","s":1536,"f":"PUC Minas","pr":1},{"h":"@lamfacpucmg","t":"Liga","s":1407,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@lanphpucminas","t":"Liga","s":1296,"f":"PUC Minas","pr":1},{"h":"@medpuccontagem","t":"Curso","s":1262,"f":"PUC Minas","pr":1,"d":1},{"h":"@lapedpucmg","t":"Liga","s":1234,"f":"PUC Minas","pr":1,"d":1},{"h":"@laofpucmg","t":"Liga","s":1228,"f":"PUC Minas","pr":1},{"h":"@gnocheers","t":"Outro","s":1166,"f":"PUC Minas","pr":1},{"h":"@laomesppucminas","t":"Liga","s":1100,"f":"PUC Minas","pr":1},{"h":"@laoncopucmg","t":"Liga","s":1059,"f":"PUC Minas","pr":1},{"h":"@lasampucmg","t":"Liga","s":1048,"f":"PUC Minas","pr":1},{"h":"@lacardiopucmg","t":"Liga","s":1044,"f":"PUC Minas","pr":1,"d":1},{"h":"@laneuro_pucmg","t":"Liga","s":1031,"f":"PUC Minas","pr":1},{"h":"@lamedepucmg","t":"Liga","s":839,"f":"PUC Minas","pr":1},{"h":"@larclimpucminas","t":"Liga","s":807,"f":"PUC Minas","pr":1,"i":1},{"h":"@lasmepucmg","t":"Liga","s":706,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@t1medpuccontagem","t":"Turma","s":518,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@comissaomedpucxi","t":"Turma","s":490,"f":"PUC Minas","pr":1,"i":1},{"h":"@medpuc23","t":"Turma","s":432,"f":"PUC Minas","pr":1},{"h":"@laisdpucmg","t":"Liga","s":411,"f":"PUC Minas","pr":1},{"h":"@medpuc24","t":"Turma","s":369,"f":"PUC Minas","pr":1},{"h":"@medpuc22","t":"Turma","s":326,"f":"PUC Minas","pr":1,"i":1},{"h":"@comissaomedpuc22","t":"Turma","s":309,"f":"PUC Minas","pr":1,"i":1},{"h":"@laafpucminas","t":"Liga","s":303,"f":"PUC Minas","pr":1},{"h":"@medpuc25","t":"Turma","s":283,"f":"PUC Minas","pr":1},{"h":"@turma8medpuc","t":"Turma","s":202,"f":"PUC Minas","pr":1,"i":1},{"h":"@medpuct26","t":"Turma","s":197,"f":"PUC Minas","pr":1},{"h":"@comissaomedpuc23","t":"Turma","s":186,"f":"PUC Minas","pr":1},{"h":"@laeupucmg","t":"Liga","s":1976,"f":"PUC Minas","pr":1,"d":1},{"h":"@lagampucmg","t":"Liga","s":1418,"f":"PUC Minas","pr":1},{"h":"@lascpucmg","t":"Liga","s":1255,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@damzapucminas","t":"CA/DA","s":1236,"f":"PUC Minas","pr":1},{"h":"@ladefepucmg","t":"Liga","s":1205,"f":"PUC Minas","pr":1,"d":1},{"h":"@lacetpuc","t":"Liga","s":1085,"f":"PUC Minas","pr":1},{"h":"@laemepucminas","t":"Liga","s":891,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@lascapucminas","t":"Liga","s":797,"f":"PUC Minas","pr":1},{"h":"@lamicpucmg","t":"Liga","s":711,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@laaps_pucminas","t":"Liga","s":617,"f":"PUC Minas","pr":1,"i":1},{"h":"@ladermepuc","t":"Liga","s":574,"f":"PUC Minas","pr":1},{"h":"@lasim.pucminas","t":"Liga","s":574,"f":"PUC Minas","pr":1},{"h":"@t2medpuccontagem","t":"Turma","s":478,"f":"PUC Minas","pr":1,"i":1},{"h":"@lauem.pucminas","t":"Liga","s":398,"f":"PUC Minas","pr":1},{"h":"@laotpucmg","t":"Liga","s":398,"f":"PUC Minas","pr":1,"i":1},{"h":"@t3medpuccontagem","t":"Turma","s":374,"f":"PUC Minas","pr":1},{"h":"@comissaomedpuct1","t":"Turma","s":351,"f":"PUC Minas","pr":1,"i":1},{"h":"@lanncpucminas","t":"Liga","s":346,"f":"PUC Minas","pr":1,"i":1},{"h":"@t5medpuc","t":"Turma","s":342,"f":"PUC Minas","pr":1,"i":1},{"h":"@comissaot3contagem","t":"Turma","s":311,"f":"PUC Minas","pr":1,"i":1},{"h":"@comintegradamed","t":"Turma","s":256,"f":"PUC Minas","pr":1,"d":1,"i":1},{"h":"@medpuciv","t":"Turma","s":250,"f":"PUC Minas","pr":1},{"h":"@t6medpuc","t":"Turma","s":240,"f":"PUC Minas","pr":1,"i":1},{"h":"@comissaot5contagem","t":"Turma","s":233,"f":"PUC Minas","pr":1},{"h":"@t8medpuc","t":"Turma","s":231,"f":"PUC Minas","pr":1},{"h":"@comedt4","t":"Turma","s":222,"f":"PUC Minas","pr":1},{"h":"@t7medpuc","t":"Turma","s":194,"f":"PUC Minas","pr":1},{"h":"@medpuct9","t":"Turma","s":151,"f":"PUC Minas","pr":1},{"h":"@ladirpucminas","t":"Liga","s":142,"f":"PUC Minas","pr":1,"i":1},{"h":"@comissaot6contagem","t":"Turma","s":78,"f":"PUC Minas","pr":1,"i":1},{"h":"@comissaomedpuct8","t":"Turma","s":69,"f":"PUC Minas","pr":1},{"h":"@atleticamedafya","t":"Atlética","s":84,"f":"Afya Faculdade de Ciências Médicas de Contagem (ex-Faculdade Única de Contagem","pr":1},{"h":"@atleticafaseh","t":"Atlética","s":3194,"f":"FASEH","pr":1},{"h":"@dacaf.faseh","t":"CA/DA","s":1703,"f":"FASEH","pr":1},{"h":"@bateriazumbizera","t":"Bateria","s":1246,"f":"FASEH","pr":1},{"h":"@lacirg.faseh","t":"Liga","s":923,"f":"FASEH","pr":1},{"h":"@laof.faseh","t":"Liga","s":911,"f":"FASEH","pr":1},{"h":"@lascea_faseh","t":"Liga","s":752,"f":"FASEH","pr":1},{"h":"@lasm_faseh","t":"Liga","s":748,"f":"FASEH","pr":1,"i":1},{"h":"@medfaseh36","t":"Turma","s":744,"f":"FASEH","pr":1},{"h":"@liapfaseh","t":"Liga","s":643,"f":"FASEH","pr":1},{"h":"@laaf.faseh","t":"Liga","s":639,"f":"FASEH","pr":1},{"h":"@lacaf.faseh","t":"Liga","s":615,"f":"FASEH","pr":1,"i":1},{"h":"@laepfaseh","t":"Liga","s":609,"f":"FASEH","pr":1},{"h":"@latf.faseh","t":"Liga","s":606,"f":"FASEH","pr":1},{"h":"@faseh.lamede","t":"Liga","s":596,"f":"FASEH","pr":1},{"h":"@lanap.faseh","t":"Liga","s":586,"f":"FASEH","pr":1},{"h":"@lacaf.faseh.oficial","t":"Liga","s":584,"f":"FASEH","pr":1},{"h":"@medfaseh30","t":"Turma","s":579,"f":"FASEH","pr":1},{"h":"@laclimfaseh","t":"Liga","s":579,"f":"FASEH","pr":1},{"h":"@ladifaseh","t":"Liga","s":567,"f":"FASEH","pr":1,"i":1},{"h":"@laoncc_faseh","t":"Liga","s":531,"f":"FASEH","pr":1},{"h":"@medfaseh34","t":"Turma","s":527,"f":"FASEH","pr":1,"i":1},{"h":"@medfaseh35","t":"Turma","s":515,"f":"FASEH","pr":1},{"h":"@laortfaseh","t":"Liga","s":470,"f":"FASEH","pr":1,"i":1},{"h":"@medfaseh32","t":"Turma","s":467,"f":"FASEH","pr":1,"i":1},{"h":"@medfaseh37","t":"Turma","s":465,"f":"FASEH","pr":1},{"h":"@medfaseh39","t":"Turma","s":428,"f":"FASEH","pr":1},{"h":"@lareifaseh","t":"Liga","s":392,"f":"FASEH","pr":1,"i":1},{"h":"@lamef.faseh","t":"Liga","s":389,"f":"FASEH","pr":1,"i":1},{"h":"@lasf.faseh","t":"Liga","s":359,"f":"FASEH","pr":1},{"h":"@medfaseh38","t":"Turma","s":359,"f":"FASEH","pr":1,"i":1},{"h":"@liase_faseh","t":"Liga","s":324,"f":"FASEH","pr":1,"i":1},{"h":"@ligastrofaseh","t":"Liga","s":308,"f":"FASEH","pr":1,"i":1},{"h":"@medfaseh40","t":"Turma","s":283,"f":"FASEH","pr":1},{"h":"@medicina25faseh","t":"Turma","s":268,"f":"FASEH","pr":1,"i":1},{"h":"@lamit.faseh","t":"Liga","s":249,"f":"FASEH","pr":1},{"h":"@medfaseh41","t":"Turma","s":163,"f":"FASEH","pr":1},{"h":"@comissao_30","t":"Outro","s":153,"f":"FASEH","pr":1,"i":1},{"h":"@medicina.faseh","t":"Curso","s":null,"f":"FASEH","pr":1},{"h":"@atleticapegasus","t":"Atlética","s":4262,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lauefa","t":"Liga","s":1317,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@somoslacma","t":"Liga","s":1109,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lamfacoatenas","t":"Liga","s":1068,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@neurolinnc","t":"Liga","s":1021,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lacfatenas","t":"Liga","s":966,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@laeme7l","t":"Liga","s":780,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@bateriaamedronta","t":"Bateria","s":765,"f":"UniAtenas / Faculdade Atenas","pr":1,"i":1},{"h":"@lacardatenas","t":"Liga","s":662,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lasc.atenas","t":"Liga","s":652,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lamep.atenas","t":"Liga","s":649,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@laortatenas","t":"Liga","s":645,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@lapsamatenas","t":"Liga","s":636,"f":"UniAtenas / Faculdade Atenas","pr":1,"i":1},{"h":"@lasematenas","t":"Liga","s":609,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@turmamed1","t":"Turma","s":344,"f":"UniAtenas / Faculdade Atenas","pr":1,"d":1,"i":1},{"h":"@lojinhadapegasus","t":"Outro","s":310,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@nefro_liga","t":"Liga","s":229,"f":"UniAtenas / Faculdade Atenas","pr":1},{"h":"@aaa.alligators","t":"Atlética","s":221,"f":"FACSETE","pr":1},{"h":"@medicinafacsete","t":"Curso","s":147,"f":"FACSETE","pr":1}]},"rj-capital":{"nome":"Rio de Janeiro (capital)","perfis":[{"h":"@atleticamedicinaufrj","t":"Atlética","s":7635,"f":"UFRJ"},{"h":"@latesufrj","t":"Liga","s":7370,"f":"UFRJ"},{"h":"@caccufrj","t":"CA/DA","s":3685,"f":"UFRJ"},{"h":"@lagoufrj","t":"Liga","s":3133,"f":"UFRJ"},{"h":"@lan_ufrj","t":"Liga","s":2706,"f":"UFRJ"},{"h":"@lap.ufrj","t":"Liga","s":2591,"f":"UFRJ"},{"h":"@lacip.ufrj","t":"Liga","s":2334,"f":"UFRJ"},{"h":"@bateriavanguarda","t":"Bateria","s":2308,"f":"UFRJ"},{"h":"@lahoufrj","t":"Liga","s":2128,"f":"UFRJ"},{"h":"@liacufrj","t":"Liga","s":1791,"f":"UFRJ","i":1},{"h":"@lad.ufrj","t":"Liga","s":1390,"f":"UFRJ","i":1},{"h":"@lamtec.ufrj","t":"Liga","s":1340,"f":"UFRJ","i":1},{"h":"@lasfacufrj","t":"Liga","s":1115,"f":"UFRJ","i":1},{"h":"@medicina_ufrj","t":"Curso","s":1073,"f":"UFRJ"},{"h":"@clamedufrj","t":"Liga","s":757,"f":"UFRJ"},{"h":"@atletismomedufrj","t":"Outro","s":632,"f":"UFRJ"},{"h":"@comissaomedufrj262","t":"Turma","s":533,"f":"UFRJ"},{"h":"@medufrj266","t":"Turma","s":529,"f":"UFRJ"},{"h":"@medufrj263","t":"Turma","s":491,"f":"UFRJ","i":1},{"h":"@milantonina262","t":"Outro","s":457,"f":"UFRJ"},{"h":"@medufrj265","t":"Turma","s":439,"f":"UFRJ"},{"h":"@medufrj264","t":"Turma","s":406,"f":"UFRJ","i":1},{"h":"@medufrj262","t":"Turma","s":403,"f":"UFRJ","i":1},{"h":"@napolimerase","t":"Outro","s":null,"f":"UFRJ","d":1},{"h":"@dipiroma266","t":"Outro","s":null,"f":"UFRJ","d":1},{"h":"@astonvirus","t":"Outro","s":null,"f":"UFRJ","d":1},{"h":"@juventriculus","t":"Outro","s":null,"f":"UFRJ","d":1},{"h":"@comissaomedufrj265","t":"Turma","s":null,"f":"UFRJ","d":1},{"h":"@comissaomedufrj266","t":"Turma","s":null,"f":"UFRJ","d":1},{"h":"@comissaomedufrj263","t":"Turma","s":null,"f":"UFRJ","d":1},{"h":"@comissaomedufrj264","t":"Turma","s":null,"f":"UFRJ","d":1},{"h":"@casafuerj","t":"CA/DA","s":14000,"f":"UERJ"},{"h":"@lamfacuerj","t":"Liga","s":10100,"f":"UERJ"},{"h":"@fcm.uerj","t":"Curso","s":7716,"f":"UERJ"},{"h":"@atleticamedicinauerj","t":"Atlética","s":5915,"f":"UERJ"},{"h":"@laa.uerj","t":"Liga","s":2636,"f":"UERJ","i":1},{"h":"@lteuerj","t":"Liga","s":2428,"f":"UERJ"},{"h":"@lipeduerj","t":"Liga","s":2354,"f":"UERJ"},{"h":"@lacuerj","t":"Liga","s":1880,"f":"UERJ"},{"h":"@lionco.uerj","t":"Liga","s":1812,"f":"UERJ"},{"h":"@licoruerj","t":"Liga","s":1741,"f":"UERJ","i":1},{"h":"@bateriademoniosdauerj","t":"Bateria","s":1671,"f":"UERJ"},{"h":"@lacicuerj","t":"Liga","s":1413,"f":"UERJ"},{"h":"@lipsiq.uerj","t":"Liga","s":1406,"f":"UERJ","i":1},{"h":"@lineu.uerj","t":"Liga","s":1309,"f":"UERJ"},{"h":"@laciv_uerj","t":"Liga","s":1178,"f":"UERJ"},{"h":"@lasmu.uerj","t":"Liga","s":1043,"f":"UERJ"},{"h":"@lanesuerj","t":"Liga","s":1032,"f":"UERJ","i":1},{"h":"@liameuerj","t":"Liga","s":800,"f":"UERJ","i":1},{"h":"@lanc.uerj","t":"Liga","s":791,"f":"UERJ"},{"h":"@lineo.uerj","t":"Liga","s":714,"f":"UERJ","i":1},{"h":"@lidermuerj","t":"Liga","s":682,"f":"UERJ","i":1},{"h":"@lojinha_meduerj","t":"Outro","s":602,"f":"UERJ"},{"h":"@lanefrouerj","t":"Liga","s":574,"f":"UERJ"},{"h":"@liorto.uerj","t":"Liga","s":515,"f":"UERJ"},{"h":"@laob.uerj","t":"Liga","s":511,"f":"UERJ","d":1},{"h":"@comissaomeduerj2026","t":"Turma","s":402,"f":"UERJ"},{"h":"@comissaomeduerj27","t":"Turma","s":284,"f":"UERJ"},{"h":"@meduerj29","t":"Turma","s":282,"f":"UERJ"},{"h":"@linfectuerj","t":"Liga","s":247,"f":"UERJ","i":1},{"h":"@formamed28","t":"Turma","s":190,"f":"UERJ","i":1},{"h":"@linemuerj","t":"Liga","s":153,"f":"UERJ"},{"h":"@lasus_uerj","t":"Liga","s":105,"f":"UERJ","d":1,"i":1},{"h":"@tocandosaude","t":"Outro","s":101,"f":"UERJ"},{"h":"@comissaomeduerj2024","t":"Turma","s":100,"f":"UERJ","i":1},{"h":"@fcm.uerj.hupe","t":"Curso","s":96,"f":"UERJ","d":1},{"h":"@pbmemfocouerj","t":"Outro","s":69,"f":"UERJ","d":1,"i":1},{"h":"@salveumavidauerj","t":"Outro","s":63,"f":"UERJ","d":1,"i":1},{"h":"@anestesiasemmedouerj","t":"Outro","s":39,"f":"UERJ","d":1,"i":1},{"h":"@atleticamedunirio","t":"Atlética","s":4943,"f":"UNIRIO"},{"h":"@emc_unirio","t":"Curso","s":2769,"f":"UNIRIO"},{"h":"@dabbunirio","t":"CA/DA","s":2188,"f":"UNIRIO"},{"h":"@workshopmedunirio","t":"Outro","s":1967,"f":"UNIRIO","d":1},{"h":"@lojinhaaard","t":"Outro","s":1379,"f":"UNIRIO"},{"h":"@sharkleadersmedunirio","t":"Outro","s":1363,"f":"UNIRIO"},{"h":"@bateriaunibloco","t":"Bateria","s":1017,"f":"UNIRIO","d":1},{"h":"@hemoligaunirio","t":"Liga","s":986,"f":"UNIRIO"},{"h":"@lamee_unirio","t":"Liga","s":850,"f":"UNIRIO","d":1},{"h":"@medunirio.156","t":"Turma","s":384,"f":"UNIRIO"},{"h":"@estacio.idomed.vistacarioca","t":"Curso","s":5911,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@atleticamedicinaestacio","t":"Atlética","s":3827,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@cameslapa","t":"CA/DA","s":2698,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laonco.vc","t":"Liga","s":888,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laortidomed","t":"Liga","s":817,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@lapes.unesa","t":"Liga","s":807,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@latot_unesa","t":"Liga","s":782,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lipesunesa","t":"Liga","s":763,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@ligamiunesapv","t":"Liga","s":651,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@lacmesunesa","t":"Liga","s":614,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@lafarmesunesa","t":"Liga","s":537,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laenes__","t":"Liga","s":524,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laggestacio","t":"Liga","s":428,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laames.vistacarioca","t":"Liga","s":251,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@comissaomedunesa2025.2","t":"Turma","s":235,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@biogenes_unesa","t":"Liga","s":194,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1},{"h":"@comformedlapa23.2","t":"Turma","s":182,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@conlamvistacarioca","t":"Outro","s":102,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1},{"h":"@loftes.rj","t":"Liga","s":null,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1},{"h":"@liures.unesa","t":"Liga","s":null,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1,"i":1},{"h":"@estacio.idomed.citta","t":"Curso","s":5820,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@atleticaidomedcitta","t":"Atlética","s":4310,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@lagounesacitta","t":"Liga","s":2912,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@camedunesa","t":"CA/DA","s":2603,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@lacipunesa","t":"Liga","s":1739,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@divercitta_idomed","t":"Outro","s":1384,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lac.unesacitta","t":"Liga","s":1148,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@liac.citta","t":"Liga","s":1058,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@liasmeunesacitta","t":"Liga","s":1019,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lahsimunesa.ju","t":"Liga","s":931,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laendo.unesa","t":"Liga","s":927,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lireum.citta","t":"Liga","s":786,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laneu.citta","t":"Liga","s":649,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lahemacitta","t":"Liga","s":639,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@ladefunesa","t":"Liga","s":619,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1},{"h":"@bateriaalcateiacitta","t":"Bateria","s":601,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lisexcitta","t":"Liga","s":543,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@liad.idomed.citta","t":"Liga","s":442,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@lamedcitta","t":"Liga","s":392,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@comissaomedunesa2026.1","t":"Turma","s":343,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"d":1},{"h":"@naapmedicina","t":"Outro","s":274,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laacivcitta","t":"Liga","s":269,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1,"i":1},{"h":"@comissaomedestacio","t":"Turma","s":139,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@alcateiamedx","t":"Turma","s":138,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@medcitta18","t":"Turma","s":122,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@laen.citta","t":"Liga","s":106,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@comissaoidomed","t":"Turma","s":105,"f":"Universidade Estácio de Sá (UNESA / IDOMED)","pr":1},{"h":"@daocsouzamarques","t":"CA/DA","s":3570,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1},{"h":"@daoc.academico","t":"CA/DA","s":1875,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1},{"h":"@liac.emsm","t":"Liga","s":1205,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1},{"h":"@liccv.sm","t":"Liga","s":915,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1,"i":1},{"h":"@interligasdecirurgia.sm","t":"Liga","s":761,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1,"i":1},{"h":"@comformed2025","t":"Turma","s":571,"f":"Escola de Medicina Souza Marques (EMSM / Fundação Técnico-Educacional Souza Marques)","pr":1,"i":1},{"h":"@atleticameduva","t":"Atlética","s":468,"f":"Universidade Veiga de Almeida (UVA)","pr":1},{"h":"@med_uva","t":"Curso","s":385,"f":"Universidade Veiga de Almeida (UVA)","pr":1},{"h":"@ligalaueva","t":"Liga","s":270,"f":"Universidade Veiga de Almeida (UVA)","pr":1},{"h":"@meduva4a","t":"Turma","s":205,"f":"Universidade Veiga de Almeida (UVA)","pr":1,"i":1},{"h":"@lamfc.uva","t":"Liga","s":78,"f":"Universidade Veiga de Almeida (UVA)","pr":1,"i":1},{"h":"@iii_turmamedveiga","t":"Turma","s":49,"f":"Universidade Veiga de Almeida (UVA)","pr":1},{"h":"@cheermeduva","t":"Outro","s":null,"f":"Universidade Veiga de Almeida (UVA)","pr":1,"d":1},{"h":"@laem.ucb","t":"Liga","s":450,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"i":1},{"h":"@liac_ucb","t":"Liga","s":423,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@lamfh.ucb","t":"Liga","s":348,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@turma01meducb","t":"Turma","s":334,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"i":1},{"h":"@lamep.ucb","t":"Liga","s":300,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@atleticamed.ucb","t":"Atlética","s":286,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"i":1},{"h":"@lacmed.ucb","t":"Liga","s":249,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@turma02ucbmed","t":"Turma","s":241,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"i":1},{"h":"@turma03ucbmed","t":"Turma","s":186,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"i":1},{"h":"@liago.ucb","t":"Liga","s":171,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@laped.ucb","t":"Liga","s":166,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@turma05meducb","t":"Turma","s":124,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@turma04meducb","t":"Turma","s":95,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@turma06ucbmed","t":"Turma","s":92,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1},{"h":"@atletica.meducb","t":"Atlética","s":null,"f":"Universidade Castelo Branco (UCB-RJ)","pr":1,"d":1},{"h":"@atleticamedunigranrio","t":"Atlética","s":5960,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@camub.unigranrio","t":"CA/DA","s":2150,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@lacm.unigranrio","t":"Liga","s":1090,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@liame.unigranrio","t":"Liga","s":1066,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@lamurgem.unigranrio","t":"Liga","s":null,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@sinusalbateria","t":"Bateria","s":null,"f":"Afya Universidade Unigranrio","pr":1},{"h":"@laupeb","t":"Liga","s":null,"f":"Afya Universidade Unigranrio","pr":1,"d":1}]},"rs":{"nome":"Rio Grande do Sul","perfis":[{"h":"@famed.ufrgs","t":"Curso","s":7592,"f":"UFRGS"},{"h":"@atleticamedufrgs","t":"Atlética","s":5371,"f":"UFRGS"},{"h":"@lipsam_","t":"Liga","s":3259,"f":"UFRGS"},{"h":"@caslmedicinaufrgs","t":"CA/DA","s":2847,"f":"UFRGS"},{"h":"@licad.ufrgs","t":"Liga","s":1117,"f":"UFRGS"},{"h":"@ltoufrgs","t":"Liga","s":814,"f":"UFRGS"},{"h":"@neurolinc","t":"Liga","s":null,"f":"UFRGS","d":1},{"h":"@litrosufrgs","t":"Liga","s":null,"f":"UFRGS"},{"h":"@licir.ufrgs","t":"Liga","s":null,"f":"UFRGS"},{"h":"@lacive_ufrgs","t":"Liga","s":null,"f":"UFRGS"},{"h":"@lider.medfff","t":"Atlética","s":4306,"f":"UFCSPA"},{"h":"@medicinaufcspa","t":"Curso","s":3253,"f":"UFCSPA"},{"h":"@ligacancerufcspa","t":"Liga","s":2754,"f":"UFCSPA"},{"h":"@litin.ufcspa","t":"Liga","s":1340,"f":"UFCSPA"},{"h":"@caxxii","t":"CA/DA","s":1191,"f":"UFCSPA"},{"h":"@laciv.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@lamel.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@ligatxhdvs","t":"Liga","s":null,"f":"UFCSPA","d":1},{"h":"@lioto.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@licx.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@liem.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@lidi.ufcspa","t":"Liga","s":null,"f":"UFCSPA"},{"h":"@aamtt","t":"Atlética","s":4538,"f":"UFSM"},{"h":"@tiranaufsm","t":"Bateria","s":1734,"f":"UFSM"},{"h":"@damedufsm","t":"CA/DA","s":1521,"f":"UFSM"},{"h":"@cardioliga.ufsm","t":"Liga","s":1073,"f":"UFSM"},{"h":"@limfac.ufsm","t":"Liga","s":967,"f":"UFSM"},{"h":"@medufsm112","t":"Turma","s":577,"f":"UFSM"},{"h":"@residenciamfcufsm","t":"Outro","s":324,"f":"UFSM","d":1},{"h":"@medufsm114","t":"Turma","s":null,"f":"UFSM"},{"h":"@medicinaufsm110","t":"Turma","s":null,"f":"UFSM","i":1},{"h":"@medufsm113","t":"Turma","s":null,"f":"UFSM"},{"h":"@famed.ufpel","t":"Curso","s":3964,"f":"UFPel"},{"h":"@lagoufpel","t":"Liga","s":3209,"f":"UFPel"},{"h":"@laomed.ufpel","t":"Liga","s":1088,"f":"UFPel"},{"h":"@sam.ufpel","t":"Outro","s":947,"f":"UFPel"},{"h":"@lacgeufpel","t":"Liga","s":788,"f":"UFPel"},{"h":"@aalufpel","t":"Atlética","s":null,"f":"UFPel"},{"h":"@bibmedufpel","t":"Outro","s":null,"f":"UFPel"},{"h":"@laspovusufpel","t":"Liga","s":null,"f":"UFPel","d":1},{"h":"@dank.leiga","t":"CA/DA","s":null,"f":"UFPel"},{"h":"@laped_ufpel","t":"Liga","s":null,"f":"UFPel"},{"h":"@ltfurg","t":"Liga","s":7764,"f":"FURG"},{"h":"@aaamatfurg","t":"Atlética","s":3224,"f":"FURG"},{"h":"@famed.furg","t":"Curso","s":1517,"f":"FURG"},{"h":"@lacmfurg","t":"Liga","s":963,"f":"FURG"},{"h":"@atm2029furg","t":"Turma","s":511,"f":"FURG","i":1},{"h":"@ifmsabrazilfurg","t":"Outro","s":null,"f":"FURG"},{"h":"@laitox.furg","t":"Liga","s":null,"f":"FURG","d":1},{"h":"@laccad","t":"Liga","s":null,"f":"FURG","d":1},{"h":"@atm2026furg","t":"Turma","s":null,"f":"FURG","d":1},{"h":"@lamefurg","t":"Liga","s":null,"f":"FURG"},{"h":"@bateriapingucafurg","t":"Bateria","s":null,"f":"FURG"},{"h":"@dafbmedfurg","t":"CA/DA","s":null,"f":"FURG"},{"h":"@lapefurg","t":"Liga","s":null,"f":"FURG"},{"h":"@lapsiq.furg","t":"Liga","s":null,"f":"FURG"},{"h":"@medicinaunipampa","t":"Curso","s":2643,"f":"UNIPAMPA"},{"h":"@laseeg.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@lapedpampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@laahcunipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@lacardio.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@t9medpampa","t":"Turma","s":null,"f":"UNIPAMPA"},{"h":"@medt17unipampa","t":"Turma","s":null,"f":"UNIPAMPA"},{"h":"@lasf.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@latem.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@lacmun.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@atleticamedunipampa","t":"Atlética","s":null,"f":"UNIPAMPA"},{"h":"@laad.unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@lasmiunipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@lagec_unipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@laccunipampa","t":"Liga","s":null,"f":"UNIPAMPA"},{"h":"@sisumeduffs","t":"Outro","s":835,"f":"UFFS"},{"h":"@aaamdml","t":"Atlética","s":null,"f":"UFFS"},{"h":"@liacuffs","t":"Liga","s":null,"f":"UFFS"},{"h":"@medicinapucrs","t":"Curso","s":6049,"f":"PUCRS","pr":1},{"h":"@udep.medpucrs","t":"Atlética","s":3763,"f":"PUCRS","pr":1},{"h":"@ligatraumapucrs","t":"Liga","s":2248,"f":"PUCRS","pr":1},{"h":"@lipsi.pucrs","t":"Liga","s":1436,"f":"PUCRS","pr":1},{"h":"@ligg.pucrs","t":"Liga","s":833,"f":"PUCRS","pr":1},{"h":"@atm25pucrs","t":"Turma","s":484,"f":"PUCRS","pr":1},{"h":"@liuropucrs","t":"Liga","s":null,"f":"PUCRS","pr":1},{"h":"@atm30pucrs","t":"Turma","s":null,"f":"PUCRS","pr":1},{"h":"@liasepucrs","t":"Liga","s":null,"f":"PUCRS","pr":1,"d":1},{"h":"@lifpa.pucrs","t":"Liga","s":null,"f":"PUCRS","pr":1},{"h":"@atm29pucrs","t":"Turma","s":null,"f":"PUCRS","pr":1},{"h":"@dagp.pucrs","t":"CA/DA","s":null,"f":"PUCRS","pr":1},{"h":"@licip.pucrs","t":"Liga","s":null,"f":"PUCRS","pr":1},{"h":"@atm28pucrs","t":"Turma","s":null,"f":"PUCRS","pr":1},{"h":"@atm27pucrs","t":"Turma","s":null,"f":"PUCRS","pr":1},{"h":"@aaasc_medulbra","t":"Atlética","s":5447,"f":"ULBRA","pr":1},{"h":"@camuulbra","t":"CA/DA","s":2880,"f":"ULBRA","pr":1},{"h":"@lapt.ulbra","t":"Liga","s":1344,"f":"ULBRA","pr":1},{"h":"@medicinaulbracanoas","t":"Curso","s":412,"f":"ULBRA","pr":1},{"h":"@ulbraatm25.2","t":"Turma","s":234,"f":"ULBRA","pr":1},{"h":"@atm262ulbra","t":"Turma","s":null,"f":"ULBRA","pr":1,"d":1},{"h":"@medicinaunisinos","t":"Curso","s":3506,"f":"UNISINOS","pr":1},{"h":"@aaamvs.unisinos","t":"Atlética","s":2406,"f":"UNISINOS","pr":1},{"h":"@canb.medicina","t":"CA/DA","s":1378,"f":"UNISINOS","pr":1},{"h":"@lacahunisinos","t":"Liga","s":1159,"f":"UNISINOS","pr":1},{"h":"@lase.unisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1,"d":1},{"h":"@laped.unisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1},{"h":"@ligastro.unisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1},{"h":"@licardiounisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1},{"h":"@panteras.aaamvs","t":"Outro","s":null,"f":"UNISINOS","pr":1},{"h":"@oftalmounisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1},{"h":"@neuroligaunisinos","t":"Liga","s":null,"f":"UNISINOS","pr":1},{"h":"@damedicinafeevale","t":"CA/DA","s":4420,"f":"Feevale","pr":1},{"h":"@medicinafeevale","t":"Curso","s":1615,"f":"Feevale","pr":1},{"h":"@t1medfeevale","t":"Turma","s":null,"f":"Feevale","pr":1},{"h":"@aaaejas","t":"Atlética","s":3200,"f":"UCS","pr":1},{"h":"@medicinaesportiva.ucs","t":"Outro","s":1737,"f":"UCS","pr":1},{"h":"@lagcp.ucs","t":"Liga","s":966,"f":"UCS","pr":1},{"h":"@lagenucs","t":"Liga","s":911,"f":"UCS","pr":1},{"h":"@bateriabatucs","t":"Bateria","s":847,"f":"UCS","pr":1},{"h":"@ligahematologiaucs","t":"Liga","s":774,"f":"UCS","pr":1},{"h":"@atm28.2ucs","t":"Turma","s":666,"f":"UCS","pr":1},{"h":"@liase.ucs","t":"Liga","s":624,"f":"UCS","pr":1},{"h":"@atm29.1ucs","t":"Turma","s":606,"f":"UCS","pr":1},{"h":"@atm30.2ucs","t":"Turma","s":562,"f":"UCS","pr":1},{"h":"@atm30.1ucs","t":"Turma","s":555,"f":"UCS","pr":1},{"h":"@lammi_ucs","t":"Liga","s":536,"f":"UCS","pr":1},{"h":"@laf_ucs","t":"Liga","s":526,"f":"UCS","pr":1},{"h":"@atm28.1ucs","t":"Turma","s":524,"f":"UCS","pr":1},{"h":"@atm27.1ucs","t":"Turma","s":386,"f":"UCS","pr":1},{"h":"@laclin.ucs","t":"Liga","s":386,"f":"UCS","pr":1},{"h":"@laemel_ucs","t":"Liga","s":321,"f":"UCS","pr":1},{"h":"@lamfeme","t":"Liga","s":181,"f":"UCS","pr":1},{"h":"@laob.ucs","t":"Liga","s":null,"f":"UCS","pr":1},{"h":"@lacg.ucs","t":"Liga","s":null,"f":"UCS","pr":1},{"h":"@aaagpf","t":"Atlética","s":4988,"f":"UPF","pr":1},{"h":"@escolademedicina_upf","t":"Curso","s":4857,"f":"UPF","pr":1},{"h":"@ligahepatologiaupf","t":"Liga","s":929,"f":"UPF","pr":1},{"h":"@loftupf","t":"Liga","s":null,"f":"UPF","pr":1},{"h":"@dadsaupf","t":"CA/DA","s":null,"f":"UPF","pr":1},{"h":"@aaampmf","t":"Atlética","s":4588,"f":"Atitus Educação (ex-IMED / Faculdade Meridional)","pr":1},{"h":"@lic.hcpf","t":"Liga","s":null,"f":"Atitus Educação (ex-IMED / Faculdade Meridional)","pr":1},{"h":"@liago.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lainf.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laderm.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@licip.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laccic.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lami.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lamel_uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lapallium","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lasmepi","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laonco.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laort.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lamtue.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lacig_uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lcmeduri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@aaamurie","t":"Atlética","s":null,"f":"URI","pr":1},{"h":"@camed_uri","t":"CA/DA","s":null,"f":"URI","pr":1},{"h":"@lasf_uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laad.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laanato.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lameeuri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@laped.uri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@lannnuri","t":"Liga","s":null,"f":"URI","pr":1},{"h":"@aaamunisc","t":"Atlética","s":4160,"f":"UNISC","pr":1},{"h":"@medicinaunisc","t":"Curso","s":1679,"f":"UNISC","pr":1},{"h":"@lamfc.unisc","t":"Liga","s":null,"f":"UNISC","pr":1},{"h":"@latraumaunisc","t":"Liga","s":null,"f":"UNISC","pr":1},{"h":"@daplusmed.unisc","t":"CA/DA","s":null,"f":"UNISC","pr":1},{"h":"@aaamunivates","t":"Atlética","s":5367,"f":"UNIVATES","pr":1},{"h":"@medicina.univates","t":"Curso","s":881,"f":"UNIVATES","pr":1},{"h":"@ladermunivates","t":"Liga","s":729,"f":"UNIVATES","pr":1},{"h":"@t21medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t20medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t19medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t24medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t23medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t22medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t18medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t14medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t13medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t12medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t17medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t16medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@t15medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@lapsiunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@laortunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@liagounivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@liga.lacuni","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lauetunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lardiunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lafimunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lagunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lamiu.univates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@t25medvates","t":"Turma","s":null,"f":"UNIVATES","pr":1},{"h":"@liaseunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@lacanunivates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@laof.univates","t":"Liga","s":null,"f":"UNIVATES","pr":1},{"h":"@medicinaunijui","t":"Curso","s":1825,"f":"UNIJUÍ","pr":1},{"h":"@centramed.unijui","t":"CA/DA","s":785,"f":"UNIJUÍ","pr":1},{"h":"@lapsm.unijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@laccvasc","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@lardimunijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@med12unijui","t":"Turma","s":null,"f":"UNIJUÍ","pr":1},{"h":"@med01unijui","t":"Turma","s":null,"f":"UNIJUÍ","pr":1},{"h":"@lasfac.unijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@aaamijui","t":"Atlética","s":null,"f":"UNIJUÍ","pr":1},{"h":"@liago_unijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@laneuro_unijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@laclim_unijui","t":"Liga","s":null,"f":"UNIJUÍ","pr":1},{"h":"@aaamucpel","t":"Atlética","s":5008,"f":"UCPel","pr":1},{"h":"@atm25ucpel","t":"Turma","s":727,"f":"UCPel","pr":1,"i":1},{"h":"@lannucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laneucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laofucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lamiucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lagoucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lamh.ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lamcp_ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lapsiucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lascucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lauemucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@liapucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laorlucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laort_ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@ligadepediatria.ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@congressomeducpel","t":"Outro","s":null,"f":"UCPel","pr":1},{"h":"@laderma.ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lacigeucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@atm28ucpel","t":"Turma","s":null,"f":"UCPel","pr":1},{"h":"@damj.ucpel","t":"CA/DA","s":null,"f":"UCPel","pr":1},{"h":"@atm30ucpel","t":"Turma","s":null,"f":"UCPel","pr":1},{"h":"@atm29ucpel","t":"Turma","s":null,"f":"UCPel","pr":1},{"h":"@lacm.ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lafieucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lagh_ucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laaducpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@lacucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laurcatolica","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@laacveucpel","t":"Liga","s":null,"f":"UCPel","pr":1},{"h":"@aamuf_","t":"Atlética","s":4251,"f":"UFN","pr":1},{"h":"@med9ufn","t":"Turma","s":1002,"f":"UFN","pr":1},{"h":"@med12ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med13ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med15ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med14ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med11ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med7ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@res_infectoneuro","t":"Outro","s":null,"f":"UFN","pr":1},{"h":"@med10ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med8ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med22ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med21ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@laped_ufn","t":"Liga","s":null,"f":"UFN","pr":1},{"h":"@damuf.ufn","t":"CA/DA","s":null,"f":"UFN","pr":1},{"h":"@laeut_ufn","t":"Liga","s":null,"f":"UFN","pr":1},{"h":"@med17ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med16ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med18ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med20ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@med19ufn","t":"Turma","s":null,"f":"UFN","pr":1},{"h":"@medicinacesuca","t":"Curso","s":1942,"f":"Cesuca","pr":1},{"h":"@damedcesuca","t":"CA/DA","s":161,"f":"Cesuca","pr":1}]},"campinas":{"nome":"Região de Campinas","perfis":[{"h":"@fcmunicamp","t":"Curso","s":15000,"f":"UNICAMP"},{"h":"@aaaalmedunicamp","t":"Atlética","s":7233,"f":"UNICAMP"},{"h":"@comauunicamp","t":"Outro","s":3545,"f":"UNICAMP"},{"h":"@liganeuro_unicamp","t":"Liga","s":2197,"f":"UNICAMP"},{"h":"@ligadecardiounicamp","t":"Liga","s":2112,"f":"UNICAMP"},{"h":"@ligapediatriaunicamp","t":"Liga","s":1989,"f":"UNICAMP"},{"h":"@ligapsiquiatriaunicamp","t":"Liga","s":1752,"f":"UNICAMP"},{"h":"@lojinha.medunicamp","t":"Outro","s":1380,"f":"UNICAMP"},{"h":"@wsmedunicamp","t":"Outro","s":1212,"f":"UNICAMP"},{"h":"@ligaortopunicamp","t":"Liga","s":984,"f":"UNICAMP"},{"h":"@loft.unicamp","t":"Liga","s":953,"f":"UNICAMP"},{"h":"@lafcm.unicamp","t":"Liga","s":504,"f":"UNICAMP"},{"h":"@medunicamp59","t":"Turma","s":503,"f":"UNICAMP"},{"h":"@laneuunicamp","t":"Liga","s":409,"f":"UNICAMP"},{"h":"@lahh.unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@liah_unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@trauma_unicamp","t":"Liga","s":null,"f":"UNICAMP","d":1},{"h":"@dcadolfolutz","t":"Outro","s":null,"f":"UNICAMP"},{"h":"@lcxp.unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@laonunicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@ligo.unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@caalmedunicamp","t":"CA/DA","s":null,"f":"UNICAMP"},{"h":"@batucogu","t":"Bateria","s":null,"f":"UNICAMP"},{"h":"@lcxunicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@ligadermatologiaunicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@lemunicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@liga.emergencia.unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@otoneuro.unicamp","t":"Liga","s":null,"f":"UNICAMP"},{"h":"@medicinajundiai","t":"Curso","s":16000,"f":"FMJ"},{"h":"@aaapab","t":"Atlética","s":4273,"f":"FMJ"},{"h":"@batuseado.fmj","t":"Bateria","s":1851,"f":"FMJ"},{"h":"@dapabfmj","t":"CA/DA","s":1717,"f":"FMJ"},{"h":"@lcgt.fmj","t":"Liga","s":1041,"f":"FMJ"},{"h":"@lame.fmj","t":"Liga","s":652,"f":"FMJ","d":1},{"h":"@ligainfecto.fmj","t":"Liga","s":638,"f":"FMJ"},{"h":"@ligadepediatria_fmj","t":"Liga","s":572,"f":"FMJ"},{"h":"@lap.fmj","t":"Liga","s":544,"f":"FMJ","d":1},{"h":"@fmj.lann","t":"Liga","s":515,"f":"FMJ"},{"h":"@lanfmj","t":"Liga","s":490,"f":"FMJ","d":1},{"h":"@cof51fmj","t":"Turma","s":460,"f":"FMJ","i":1},{"h":"@cofxlviii","t":"Turma","s":431,"f":"FMJ","i":1},{"h":"@ligaendocrino_fmj","t":"Liga","s":263,"f":"FMJ"},{"h":"@lamefmj","t":"Liga","s":224,"f":"FMJ","d":1},{"h":"@cof52fmj","t":"Turma","s":null,"f":"FMJ","d":1},{"h":"@dcdapab","t":"Outro","s":null,"f":"FMJ","d":1},{"h":"@vmbrabo.fmj","t":"Outro","s":null,"f":"FMJ"},{"h":"@dcdapabfmj","t":"Outro","s":null,"f":"FMJ"},{"h":"@atleticamedguacu","t":"Atlética","s":1506,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@t4fmpfm","t":"Turma","s":205,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@t6fmpfm","t":"Turma","s":194,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@medguacu","t":"Turma","s":94,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@t2fmpfm","t":"Turma","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lapsq.fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lagin.fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@camedfmpfm","t":"CA/DA","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@t3fmpfm","t":"Turma","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lact.fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lac.fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lame_fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lasf.fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@diretoria_de_ligas_fmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@lacdefmpfm","t":"Liga","s":null,"f":"Faculdade Municipal Professor Franco Montoro (FMPFM)"},{"h":"@aaacot","t":"Atlética","s":4625,"f":"PUC-Campinas","pr":1},{"h":"@lann.puccamp","t":"Liga","s":2438,"f":"PUC-Campinas","pr":1},{"h":"@ligaoncopucc","t":"Liga","s":2322,"f":"PUC-Campinas","pr":1},{"h":"@damab.puccamp","t":"CA/DA","s":1523,"f":"PUC-Campinas","pr":1},{"h":"@medpuccamp","t":"Curso","s":1202,"f":"PUC-Campinas","pr":1},{"h":"@comissaomedpucc57","t":"Turma","s":635,"f":"PUC-Campinas","pr":1,"i":1},{"h":"@ligadecardiologiapuccampinas","t":"Liga","s":null,"f":"PUC-Campinas","pr":1},{"h":"@comissaomedpucc67","t":"Turma","s":null,"f":"PUC-Campinas","pr":1},{"h":"@ligadotrauma_puccampinas","t":"Liga","s":null,"f":"PUC-Campinas","pr":1},{"h":"@ladermpuccamp","t":"Liga","s":null,"f":"PUC-Campinas","pr":1},{"h":"@comissaomedpucc63","t":"Turma","s":null,"f":"PUC-Campinas","pr":1},{"h":"@comissaomedpucc60","t":"Turma","s":null,"f":"PUC-Campinas","pr":1},{"h":"@fcmedpuccamp","t":"Outro","s":null,"f":"PUC-Campinas","pr":1,"d":1},{"h":"@comissaomedpucc69","t":"Turma","s":null,"f":"PUC-Campinas","pr":1},{"h":"@atleticamedmandic","t":"Atlética","s":6846,"f":"São Leopoldo Mandic","pr":1},{"h":"@loja.medmandic","t":"Outro","s":3827,"f":"São Leopoldo Mandic","pr":1},{"h":"@lannslm","t":"Liga","s":1126,"f":"São Leopoldo Mandic","pr":1},{"h":"@lamemandic","t":"Liga","s":934,"f":"São Leopoldo Mandic","pr":1},{"h":"@bateriaapneia","t":"Bateria","s":856,"f":"São Leopoldo Mandic","pr":1},{"h":"@logos_slm","t":"Liga","s":843,"f":"São Leopoldo Mandic","pr":1},{"h":"@laanatoslmandic","t":"Liga","s":730,"f":"São Leopoldo Mandic","pr":1},{"h":"@comissaot8mandic","t":"Turma","s":686,"f":"São Leopoldo Mandic","pr":1},{"h":"@comissaot7mandic","t":"Turma","s":669,"f":"São Leopoldo Mandic","pr":1,"i":1},{"h":"@tenismedmandic","t":"Outro","s":279,"f":"São Leopoldo Mandic","pr":1},{"h":"@futsalmedmandic","t":"Outro","s":175,"f":"São Leopoldo Mandic","pr":1},{"h":"@lamjslmandic","t":"Liga","s":58,"f":"São Leopoldo Mandic","pr":1},{"h":"@medicinaunipcampinas","t":"Curso","s":1280,"f":"UNIP","pr":1},{"h":"@atleticamedicinaunip","t":"Atlética","s":1074,"f":"UNIP","pr":1},{"h":"@chelbar_","t":"Outro","s":null,"f":"UNIP","pr":1,"d":1},{"h":"@lojinha.aaamuc","t":"Outro","s":null,"f":"UNIP","pr":1},{"h":"@ca.ritalobato","t":"CA/DA","s":null,"f":"UNIP","pr":1},{"h":"@aaamedicinaunimax","t":"Atlética","s":2663,"f":"UniMAX","pr":1},{"h":"@camot_unimax","t":"CA/DA","s":653,"f":"UniMAX","pr":1},{"h":"@laclin_unimax","t":"Liga","s":653,"f":"UniMAX","pr":1},{"h":"@medicinaunimaxoficial","t":"Curso","s":595,"f":"UniMAX","pr":1},{"h":"@lacg.unimax","t":"Liga","s":568,"f":"UniMAX","pr":1},{"h":"@primusmedmax","t":"Turma","s":471,"f":"UniMAX","pr":1},{"h":"@batucassauro","t":"Bateria","s":387,"f":"UniMAX","pr":1},{"h":"@lojinha_a.a.a.m.u","t":"Outro","s":312,"f":"UniMAX","pr":1},{"h":"@lamel.unimax","t":"Liga","s":278,"f":"UniMAX","pr":1},{"h":"@lame.unimax","t":"Liga","s":265,"f":"UniMAX","pr":1},{"h":"@medmax.t6","t":"Turma","s":247,"f":"UniMAX","pr":1},{"h":"@lami.unimax","t":"Liga","s":220,"f":"UniMAX","pr":1},{"h":"@lamed.unimax","t":"Liga","s":218,"f":"UniMAX","pr":1},{"h":"@medmax.t9","t":"Turma","s":106,"f":"UniMAX","pr":1},{"h":"@lamr_unimax","t":"Liga","s":null,"f":"UniMAX","pr":1},{"h":"@medtaurus","t":"Atlética","s":1576,"f":"UniFAJ","pr":1},{"h":"@camed_unifaj","t":"CA/DA","s":669,"f":"UniFAJ","pr":1},{"h":"@medicinaunifajoficial","t":"Curso","s":503,"f":"UniFAJ","pr":1,"i":1},{"h":"@medicinacomissaot5","t":"Turma","s":430,"f":"UniFAJ","pr":1},{"h":"@comissaot1medfaj","t":"Turma","s":367,"f":"UniFAJ","pr":1},{"h":"@batouradas","t":"Bateria","s":355,"f":"UniFAJ","pr":1},{"h":"@ligadecardio.unifaj","t":"Liga","s":317,"f":"UniFAJ","pr":1},{"h":"@medt3unifaj","t":"Turma","s":305,"f":"UniFAJ","pr":1},{"h":"@comissaomed.t6","t":"Turma","s":304,"f":"UniFAJ","pr":1},{"h":"@comissaomedt4unifaj","t":"Turma","s":246,"f":"UniFAJ","pr":1},{"h":"@lafu.unifaj","t":"Liga","s":244,"f":"UniFAJ","pr":1},{"h":"@comissaot2_unifaj","t":"Turma","s":234,"f":"UniFAJ","pr":1},{"h":"@laem.unifaj","t":"Liga","s":220,"f":"UniFAJ","pr":1},{"h":"@lamfc.unifaj","t":"Liga","s":143,"f":"UniFAJ","pr":1},{"h":"@lamr_unifaj","t":"Liga","s":133,"f":"UniFAJ","pr":1},{"h":"@lafam.unifaj","t":"Liga","s":111,"f":"UniFAJ","pr":1},{"h":"@lapen.unifaj","t":"Liga","s":3,"f":"UniFAJ","pr":1,"d":1},{"h":"@a.a.a.r.t","t":"Atlética","s":5062,"f":"USF","pr":1},{"h":"@cart_medbraganca","t":"CA/DA","s":3953,"f":"USF","pr":1},{"h":"@liaah_usf","t":"Liga","s":2596,"f":"USF","pr":1,"d":1},{"h":"@medicinabraganca","t":"Outro","s":1541,"f":"USF","pr":1,"d":1},{"h":"@limef.usf","t":"Liga","s":null,"f":"USF","pr":1,"d":1},{"h":"@ifmsabrazil_usf","t":"Outro","s":null,"f":"USF","pr":1},{"h":"@aaagh.facm","t":"Atlética","s":265,"f":"UNASP","pr":1},{"h":"@lamev.unasp","t":"Liga","s":110,"f":"UNASP","pr":1},{"h":"@lojinha.aaagh","t":"Outro","s":101,"f":"UNASP","pr":1},{"h":"@lamet.unasp","t":"Liga","s":68,"f":"UNASP","pr":1},{"h":"@medicinaunasp","t":"Outro","s":41,"f":"UNASP","pr":1,"d":1},{"h":"@medicina.unifaccamp","t":"CA/DA","s":465,"f":"UNIFACCAMP","pr":1},{"h":"@atleticamedicinaunifaccamp","t":"Atlética","s":412,"f":"UNIFACCAMP","pr":1},{"h":"@lago_unifaccamp","t":"Liga","s":290,"f":"UNIFACCAMP","pr":1},{"h":"@smfcmp","t":"Outro","s":256,"f":"UNIFACCAMP","pr":1,"i":1},{"h":"@laue_unifaccamp","t":"Liga","s":241,"f":"UNIFACCAMP","pr":1},{"h":"@lamsc.unifaccamp","t":"Liga","s":190,"f":"UNIFACCAMP","pr":1},{"h":"@laraunifaccamp","t":"Liga","s":167,"f":"UNIFACCAMP","pr":1},{"h":"@lacm.unifaccamp","t":"Liga","s":162,"f":"UNIFACCAMP","pr":1},{"h":"@lamespunifaccamp","t":"Liga","s":90,"f":"UNIFACCAMP","pr":1},{"h":"@unifaccampmedicina","t":"Curso","s":22,"f":"UNIFACCAMP","pr":1,"d":1,"i":1},{"h":"@ligagounifaccamp_","t":"Liga","s":null,"f":"UNIFACCAMP","pr":1},{"h":"@atleticamandiclimeira","t":"Atlética","s":null,"f":"São Leopoldo Mandic de Limeira","pr":1},{"h":"@lagoslml","t":"Liga","s":null,"f":"São Leopoldo Mandic de Limeira","pr":1},{"h":"@atleticamedpira","t":"Atlética","s":3965,"f":"Anhembi Morumbi","pr":1},{"h":"@bateriapetrifica","t":"Bateria","s":null,"f":"Anhembi Morumbi","pr":1},{"h":"@esportesmedpira","t":"Outro","s":null,"f":"Anhembi Morumbi","pr":1},{"h":"@losmambas_medpira","t":"Outro","s":null,"f":"Anhembi Morumbi","pr":1},{"h":"@lojinhamedicinapiracicaba","t":"Outro","s":null,"f":"Anhembi Morumbi","pr":1},{"h":"@festadosemaforomed","t":"Outro","s":null,"f":"Anhembi Morumbi","pr":1}]},"go":{"nome":"Goiás","perfis":[{"h":"@atleticamadrasta","t":"Atlética","s":11000,"f":"UFG"},{"h":"@caxxiaufg","t":"CA/DA","s":3790,"f":"UFG"},{"h":"@integracaomedufg","t":"Turma","s":2605,"f":"UFG"},{"h":"@ligadetransplantes","t":"Liga","s":null,"f":"UFG"},{"h":"@medweekufg","t":"Outro","s":null,"f":"UFG"},{"h":"@comforlxv","t":"Turma","s":null,"f":"UFG","d":1,"i":1},{"h":"@bateriamadrasta","t":"Bateria","s":null,"f":"UFG"},{"h":"@ligamiufg","t":"Liga","s":null,"f":"UFG","d":1},{"h":"@ligami.ufg","t":"Liga","s":null,"f":"UFG","d":1},{"h":"@atleticamedufj","t":"Atlética","s":4825,"f":"UFJ"},{"h":"@medicina.ufj","t":"Curso","s":2661,"f":"UFJ"},{"h":"@camej_ufj","t":"CA/DA","s":1720,"f":"UFJ"},{"h":"@sejamedufj","t":"Outro","s":1135,"f":"UFJ"},{"h":"@lagg.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lagem.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@laesp.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lamelp.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lsm.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lacjatai","t":"Liga","s":null,"f":"UFJ"},{"h":"@laecjatai","t":"Liga","s":null,"f":"UFJ","d":1},{"h":"@clevufj","t":"Outro","s":null,"f":"UFJ"},{"h":"@cics_ufj","t":"Outro","s":null,"f":"UFJ"},{"h":"@liaf.ufj","t":"Liga","s":null,"f":"UFJ","d":1},{"h":"@lapejufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@ifmsabrazil_ufj","t":"Outro","s":null,"f":"UFJ"},{"h":"@lojinhapeconhenta","t":"Outro","s":null,"f":"UFJ"},{"h":"@medtechufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lamfacufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lacardioufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@laetufj","t":"Liga","s":null,"f":"UFJ","d":1},{"h":"@bateriapeconhenta","t":"Bateria","s":null,"f":"UFJ"},{"h":"@turma10medufj","t":"Turma","s":null,"f":"UFJ"},{"h":"@colijamedicinaufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lacmjatai","t":"Liga","s":null,"f":"UFJ","d":1},{"h":"@laad.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@oncoligajatai","t":"Liga","s":null,"f":"UFJ"},{"h":"@lescufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lagobufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@laac.ufj","t":"Liga","s":null,"f":"UFJ"},{"h":"@lamenj_","t":"Liga","s":null,"f":"UFJ"},{"h":"@atleticamaculosa","t":"Atlética","s":3667,"f":"UFCAT"},{"h":"@caxim.ufcat","t":"CA/DA","s":624,"f":"UFCAT"},{"h":"@lami_ufcat","t":"Liga","s":281,"f":"UFCAT"},{"h":"@medufcat.t3","t":"Turma","s":null,"f":"UFCAT"},{"h":"@medufcatt2","t":"Turma","s":null,"f":"UFCAT"},{"h":"@laggeufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@lac.ufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@medclass.na.ufcat","t":"Outro","s":null,"f":"UFCAT","d":1},{"h":"@comef.ufcat","t":"Outro","s":null,"f":"UFCAT"},{"h":"@jac.medufcat","t":"Outro","s":null,"f":"UFCAT","i":1},{"h":"@medufcat.t7","t":"Turma","s":null,"f":"UFCAT"},{"h":"@medufcat_t8","t":"Turma","s":null,"f":"UFCAT"},{"h":"@laemufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@lacp.ufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@laortcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@maculosabateria","t":"Bateria","s":null,"f":"UFCAT","d":1},{"h":"@seja.med.ufcat","t":"Curso","s":null,"f":"UFCAT"},{"h":"@lunnesgo","t":"Liga","s":null,"f":"UFCAT"},{"h":"@lamego.ufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@lacefufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@lapep.ufcat","t":"Liga","s":null,"f":"UFCAT"},{"h":"@la.tesg","t":"Liga","s":null,"f":"UFCAT"},{"h":"@caiisetueg","t":"CA/DA","s":1545,"f":"UEG"},{"h":"@medueg2","t":"Turma","s":525,"f":"UEG"},{"h":"@vestibularmedicinaueg","t":"Outro","s":136,"f":"UEG","d":1,"i":1},{"h":"@veteranosdetodosueg","t":"Turma","s":null,"f":"UEG"},{"h":"@aaafamerv","t":"Atlética","s":9129,"f":"UniRV"},{"h":"@laclimrv","t":"Liga","s":1174,"f":"UniRV"},{"h":"@lionco.famerv","t":"Liga","s":1162,"f":"UniRV"},{"h":"@famervmed7","t":"Turma","s":369,"f":"UniRV"},{"h":"@prmfc_rv","t":"Outro","s":329,"f":"UniRV"},{"h":"@famervesportes","t":"Outro","s":null,"f":"UniRV","d":1},{"h":"@famerv22","t":"Turma","s":null,"f":"UniRV"},{"h":"@famervstore","t":"Outro","s":null,"f":"UniRV"},{"h":"@comerv_","t":"Outro","s":null,"f":"UniRV"},{"h":"@torcidacaninde","t":"Outro","s":null,"f":"UniRV","d":1},{"h":"@famerv21","t":"Turma","s":null,"f":"UniRV"},{"h":"@bateriacianose","t":"Bateria","s":null,"f":"UniRV"},{"h":"@famerv.unirv","t":"Curso","s":null,"f":"UniRV"},{"h":"@cafamerv","t":"CA/DA","s":null,"f":"UniRV"},{"h":"@liaggerv","t":"Liga","s":null,"f":"UniRV","d":1},{"h":"@famerv19","t":"Turma","s":null,"f":"UniRV"},{"h":"@famerv18","t":"Turma","s":null,"f":"UniRV"},{"h":"@coligamfamerv","t":"Outro","s":null,"f":"UniRV"},{"h":"@cajaaunirv","t":"CA/DA","s":2404,"f":"UniRV"},{"h":"@conamed.unirv","t":"Outro","s":2284,"f":"UniRV"},{"h":"@revoada_torcida","t":"Outro","s":1932,"f":"UniRV"},{"h":"@clevunirvaparecida","t":"Outro","s":1698,"f":"UniRV"},{"h":"@lapsm.unirv","t":"Liga","s":850,"f":"UniRV"},{"h":"@med7unirv","t":"Turma","s":671,"f":"UniRV","i":1},{"h":"@med15unirv","t":"Turma","s":630,"f":"UniRV"},{"h":"@coligaff","t":"Liga","s":619,"f":"UniRV"},{"h":"@med18unirv","t":"Turma","s":554,"f":"UniRV"},{"h":"@famedunirv","t":"Curso","s":529,"f":"UniRV","i":1},{"h":"@med12unirv","t":"Turma","s":527,"f":"UniRV"},{"h":"@med14unirv","t":"Turma","s":474,"f":"UniRV"},{"h":"@med9unirv","t":"Turma","s":462,"f":"UniRV","i":1},{"h":"@med16unirv","t":"Turma","s":454,"f":"UniRV","i":1},{"h":"@med2unirv","t":"Turma","s":339,"f":"UniRV","i":1},{"h":"@med24unirv","t":"Turma","s":null,"f":"UniRV"},{"h":"@med22unirv","t":"Turma","s":null,"f":"UniRV"},{"h":"@lineu.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@atleticamedunirv","t":"Atlética","s":null,"f":"UniRV"},{"h":"@lidor.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@linefrounirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@med13unirv","t":"Turma","s":null,"f":"UniRV"},{"h":"@lapediaunirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@lianeunirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@licardio.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@limasto.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@liaph.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@atleticafamego","t":"Atlética","s":5980,"f":"UniRV"},{"h":"@colig.famego","t":"Liga","s":1125,"f":"UniRV"},{"h":"@laoncoh.famego","t":"Liga","s":684,"f":"UniRV"},{"h":"@med14famego","t":"Turma","s":611,"f":"UniRV"},{"h":"@iconmego","t":"Outro","s":null,"f":"UniRV","i":1},{"h":"@iiconmego","t":"Outro","s":null,"f":"UniRV"},{"h":"@malignaesportes","t":"Outro","s":null,"f":"UniRV","d":1},{"h":"@malignastore","t":"Outro","s":null,"f":"UniRV","d":1},{"h":"@eventosmaligna","t":"Outro","s":null,"f":"UniRV","d":1},{"h":"@famegomed2","t":"Turma","s":null,"f":"UniRV"},{"h":"@laturefamego","t":"Liga","s":null,"f":"UniRV"},{"h":"@bateriamanguaca","t":"Bateria","s":null,"f":"UniRV"},{"h":"@lamin.unirv","t":"Liga","s":null,"f":"UniRV"},{"h":"@lagg.famego","t":"Liga","s":null,"f":"UniRV","d":1},{"h":"@cajjcunirv","t":"CA/DA","s":null,"f":"UniRV"},{"h":"@aaafamef","t":"Atlética","s":3564,"f":"UniRV"},{"h":"@lamurgem_unirv","t":"Liga","s":656,"f":"UniRV"},{"h":"@med6famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med3famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med14famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med2famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med7famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med11famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med13famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med9famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med10famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@lamif.famef","t":"Liga","s":null,"f":"UniRV"},{"h":"@bateriatenebrosa","t":"Bateria","s":null,"f":"UniRV"},{"h":"@caselpmed","t":"CA/DA","s":null,"f":"UniRV"},{"h":"@coligamfamef","t":"Liga","s":null,"f":"UniRV"},{"h":"@med1famef","t":"Turma","s":null,"f":"UniRV"},{"h":"@med12famef","t":"Turma","s":null,"f":"UniRV"},{"h":"@med8famef","t":"Turma","s":null,"f":"UniRV","d":1},{"h":"@med4famef","t":"Turma","s":null,"f":"UniRV"},{"h":"@med5famef","t":"Turma","s":null,"f":"UniRV"},{"h":"@ca.cpm","t":"CA/DA","s":277,"f":"UniRV"},{"h":"@atleticameduf","t":"Atlética","s":6225,"f":"UNIFIMES"},{"h":"@camers.unifimes","t":"CA/DA","s":1256,"f":"UNIFIMES"},{"h":"@eventosfulminante","t":"Outro","s":1130,"f":"UNIFIMES"},{"h":"@bateriafulminante","t":"Bateria","s":1084,"f":"UNIFIMES"},{"h":"@coliguf","t":"Liga","s":609,"f":"UNIFIMES"},{"h":"@medicinat4uf","t":"Turma","s":608,"f":"UNIFIMES","i":1},{"h":"@internatomed.unifimes","t":"Curso","s":379,"f":"UNIFIMES"},{"h":"@lapeufimes","t":"Liga","s":356,"f":"UNIFIMES"},{"h":"@t10meduf","t":"Turma","s":336,"f":"UNIFIMES"},{"h":"@t5medfimes","t":"Turma","s":271,"f":"UNIFIMES","i":1},{"h":"@larcd.unifimes","t":"Liga","s":268,"f":"UNIFIMES"},{"h":"@laort_unifimes","t":"Liga","s":193,"f":"UNIFIMES"},{"h":"@febreamarela_torcida","t":"Outro","s":170,"f":"UNIFIMES"},{"h":"@cacxunifimes","t":"CA/DA","s":1069,"f":"UNIFIMES"},{"h":"@freneticatletica","t":"Atlética","s":null,"f":"UNIFIMES"},{"h":"@txmeduf","t":"Turma","s":null,"f":"UNIFIMES"},{"h":"@medicinaunc","t":"Curso","s":1844,"f":"UNICERRADO"},{"h":"@larim_unicerrado","t":"Liga","s":null,"f":"UNICERRADO"},{"h":"@lamurgemunc","t":"Liga","s":null,"f":"UNICERRADO"},{"h":"@coligam_unc","t":"Liga","s":null,"f":"UNICERRADO"},{"h":"@atleticamedpuc","t":"Atlética","s":8454,"f":"PUC Goiás","pr":1},{"h":"@vestmedpucgo","t":"Outro","s":2977,"f":"PUC Goiás","pr":1},{"h":"@capf_pucgo","t":"CA/DA","s":2515,"f":"PUC Goiás","pr":1},{"h":"@lador.pucgo","t":"Liga","s":1558,"f":"PUC Goiás","pr":1},{"h":"@lagempucgo","t":"Liga","s":1113,"f":"PUC Goiás","pr":1},{"h":"@lanepucgo","t":"Liga","s":769,"f":"PUC Goiás","pr":1},{"h":"@medpuc42","t":"Turma","s":null,"f":"PUC Goiás","pr":1,"d":1},{"h":"@lasmed.pucgo","t":"Liga","s":null,"f":"PUC Goiás","pr":1,"d":1},{"h":"@lanep.pucgo","t":"Liga","s":null,"f":"PUC Goiás","pr":1,"d":1},{"h":"@ligami.pucgo","t":"Liga","s":null,"f":"PUC Goiás","pr":1},{"h":"@laanpucgo","t":"Liga","s":null,"f":"PUC Goiás","pr":1},{"h":"@cesmed_9","t":"Outro","s":null,"f":"PUC Goiás","pr":1,"d":1},{"h":"@aaaoir","t":"Atlética","s":7844,"f":"UniEVANGÉLICA","pr":1},{"h":"@dajafunievangelica","t":"CA/DA","s":2951,"f":"UniEVANGÉLICA","pr":1},{"h":"@coligunievangelica","t":"Liga","s":null,"f":"UniEVANGÉLICA","pr":1,"d":1},{"h":"@atleticapandemiamed","t":"Atlética","s":3953,"f":"UNIFAN","pr":1},{"h":"@camed_unifan","t":"CA/DA","s":1650,"f":"UNIFAN","pr":1},{"h":"@dc.unifan","t":"Outro","s":1292,"f":"UNIFAN","pr":1},{"h":"@med16unifan","t":"Turma","s":236,"f":"UNIFAN","pr":1},{"h":"@torcidapandemoniacos","t":"Outro","s":122,"f":"UNIFAN","pr":1},{"h":"@produtospandemia","t":"Outro","s":null,"f":"UNIFAN","pr":1},{"h":"@bateria.pandemia","t":"Bateria","s":null,"f":"UNIFAN","pr":1},{"h":"@cemegounifan","t":"Outro","s":null,"f":"UNIFAN","pr":1},{"h":"@aaamrp","t":"Atlética","s":7562,"f":"FAMP","pr":1},{"h":"@medfampt12","t":"Turma","s":null,"f":"FAMP","pr":1},{"h":"@medfampt14","t":"Turma","s":null,"f":"FAMP","pr":1},{"h":"@bateria_hematose","t":"Bateria","s":null,"f":"FAMP","pr":1},{"h":"@medfampt7","t":"Turma","s":null,"f":"FAMP","pr":1},{"h":"@faculdadezarns.itumbiara","t":"Curso","s":9489,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@euforiamediub","t":"Atlética","s":3307,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@esporteseuforia","t":"Outro","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@spotted.mediub","t":"Outro","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@jaleko.imepac.iub","t":"Outro","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@torcidaeuforicos","t":"Outro","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@ca.mediub","t":"CA/DA","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@bateriamedeuforia","t":"Bateria","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1},{"h":"@lojinha.euforia","t":"Outro","s":null,"f":"Faculdade Zarns Itumbiara (ex-IMEPAC Itumbiara)","pr":1}]}};
+
+const FOCO_PADRAO = 'Abrir o perfil marcado como "seguindo agora", seguir os SEGUIDORES dele (estudantes de medicina) e, quando terminar a varredura, concluir e começar o próximo. Perfil morto ou privado: descartar.';
+const BLOCOS = ['A', 'B', 'C', 'D'];
+
+const cli = window.supabase.createClient(SB_URL, SB_KEY);
+
+// ---------- estado global ----------
+let EU = null;            // { email, nome, papel }
+let OPERADORES = [];      // perfis_op
+let CELULARES = [];       // celulares
+let CONTAS = [];          // contas
+let PROG = {};            // contaId -> { handle: { estado, ts } }
+let carregado = false;
+
+// preferências locais de interface (não são dados de operação)
+function lsGet(k, fb) { try { const v = localStorage.getItem(k); return v === null ? fb : JSON.parse(v); } catch (e) { return fb; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+function grpFechados(contaId) { const v = lsGet('cf_g_' + contaId, []); return Array.isArray(v) ? v : []; }
+function toggleGrp(contaId, f) {
+  const g = grpFechados(contaId);
+  const i = g.indexOf(f);
+  if (i >= 0) g.splice(i, 1); else g.push(f);
+  lsSet('cf_g_' + contaId, g);
+}
+function abreGrp(contaId, f) {
+  const g = grpFechados(contaId);
+  const i = g.indexOf(f);
+  if (i >= 0) { g.splice(i, 1); lsSet('cf_g_' + contaId, g); return true; }
+  return false;
+}
+
+function hojeStr(ts) { return new Date(ts).toLocaleDateString('pt-BR'); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------- progresso (banco) ----------
+function estadoDe(contaId, h) { const p = PROG[contaId]; return p && p[h] ? p[h].estado : null; }
+function marcados(contaId, estado) {
+  const p = PROG[contaId] || {};
+  return Object.keys(p).filter(h => p[h].estado === estado);
+}
+function atuais(contaId) { return marcados(contaId, 'seguindo'); }
+
+async function setProg(contaId, handle, estado) {
+  const p = PROG[contaId] || (PROG[contaId] = {});
+  const antes = p[handle];
+  if (estado) p[handle] = { estado, ts: Date.now() }; else delete p[handle];
+  let res;
+  if (estado) res = await cli.from('progresso').upsert({ conta: contaId, handle, estado, por: EU.email, ts: new Date().toISOString() });
+  else res = await cli.from('progresso').delete().match({ conta: contaId, handle });
+  if (res.error) {
+    if (antes) p[handle] = antes; else delete p[handle];
+    toast('Falha ao salvar. Confira a internet e tente de novo.');
+    route();
+  }
+}
+
+// ---------- dados derivados ----------
+function contasDoCel(celId) { return CONTAS.filter(c => c.celular === celId).sort((a, b) => a.ordem - b.ordem); }
+function celDe(conta) { return CELULARES.find(x => x.id === conta.celular); }
+function celsDe(email) { return CELULARES.filter(c => c.operador_email === email).sort((a, b) => a.ordem - b.ordem); }
+const _grupos = {};
+function gruposRegiao(slug) {
+  if (_grupos[slug]) return _grupos[slug];
+  if (!PERFIS[slug]) return [];
+  const map = new Map();
+  for (const p of PERFIS[slug].perfis) {
+    const k = p.f || 'Sem faculdade';
+    if (!map.has(k)) map.set(k, { f: k, pr: p.pr ? 1 : 0, perfis: [] });
+    map.get(k).perfis.push(p);
+  }
+  const arr = Array.from(map.values()).sort((a, b) => (b.pr - a.pr) || (b.perfis.length - a.perfis.length));
+  _grupos[slug] = arr;
+  return arr;
+}
+function sliceDe(conta) {
+  const cel = celDe(conta);
+  const irmas = contasDoCel(cel.id);
+  const idx = irmas.findIndex(c => c.id === conta.id);
+  const grupos = gruposRegiao(cel.regiao);
+  const cargas = irmas.map(() => 0);
+  const minhas = [];
+  for (const g of grupos) {
+    let alvo = 0;
+    for (let i = 1; i < cargas.length; i++) if (cargas[i] < cargas[alvo]) alvo = i;
+    cargas[alvo] += g.perfis.length;
+    if (alvo === idx) minhas.push(g);
+  }
+  const perfis = [];
+  for (const g of minhas) for (const p of g.perfis) perfis.push(p);
+  return { idx, total: irmas.length, perfis, grupos: minhas };
+}
+function resumoConta(contaId) {
+  const conta = CONTAS.find(c => c.id === contaId);
+  const sl = sliceDe(conta);
+  const p = PROG[contaId] || {};
+  const nDesc = sl.perfis.filter(x => p[x.h] && p[x.h].estado === 'descartado').length;
+  const feitos = sl.perfis.filter(x => p[x.h] && p[x.h].estado === 'concluido').length;
+  const total = sl.perfis.length - nDesc;
+  const nAt = sl.perfis.filter(x => p[x.h] && p[x.h].estado === 'seguindo').length;
+  const pct = total ? Math.round(100 * feitos / total) : 0;
+  return { sl, nDesc, feitos, total, nAt, pct };
+}
+
+// ---------- carga e tempo real ----------
+async function carregaTudo() {
+  const [ops, cels, cts, prg] = await Promise.all([
+    cli.from('perfis_op').select('*'),
+    cli.from('celulares').select('*').order('ordem'),
+    cli.from('contas').select('*').order('ordem'),
+    cli.from('progresso').select('*'),
+  ]);
+  if (ops.error || cels.error || cts.error || prg.error) {
+    app.innerHTML = '<div class="card" style="margin-top:32px;">N&atilde;o consegui carregar os dados. Recarregue a p&aacute;gina.</div>';
+    return false;
+  }
+  OPERADORES = ops.data;
+  CELULARES = cels.data;
+  CONTAS = cts.data;
+  PROG = {};
+  for (const r of prg.data) {
+    if (!PROG[r.conta]) PROG[r.conta] = {};
+    PROG[r.conta][r.handle] = { estado: r.estado, ts: Date.parse(r.ts) || Date.now() };
+  }
+  return true;
+}
+
+let canalOk = false;
+function ligaTempoReal() {
+  if (canalOk) return;
+  canalOk = true;
+  cli.channel('mudancas')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'progresso' }, pl => {
+      const r = pl.new && pl.new.conta ? pl.new : pl.old;
+      if (!r) return;
+      if (pl.eventType === 'DELETE') {
+        if (PROG[r.conta]) delete PROG[r.conta][r.handle];
+      } else {
+        if (!PROG[r.conta]) PROG[r.conta] = {};
+        PROG[r.conta][r.handle] = { estado: pl.new.estado, ts: Date.parse(pl.new.ts) || Date.now() };
+      }
+      route();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'celulares' }, async () => { await recarregaConfig(); route(); })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'contas' }, async () => { await recarregaConfig(); route(); })
+    .subscribe();
+}
+async function recarregaConfig() {
+  const [cels, cts] = await Promise.all([
+    cli.from('celulares').select('*').order('ordem'),
+    cli.from('contas').select('*').order('ordem'),
+  ]);
+  if (!cels.error) CELULARES = cels.data;
+  if (!cts.error) CONTAS = cts.data;
+}
+document.addEventListener('visibilitychange', async () => {
+  if (!document.hidden && carregado) { await carregaTudo(); route(); }
+});
+
+// ---------- roteador ----------
+function nav(hash) { if (location.hash === hash) { route(); } else { location.hash = hash; } }
+function route() {
+  if (!EU) return;
+  const h = location.hash;
+  if (h.indexOf('#c/') === 0) {
+    const id = decodeURIComponent(h.slice(3));
+    if (CONTAS.some(c => c.id === id)) { renderConta(id); return; }
+  }
+  renderPainel();
+}
+window.addEventListener('hashchange', route);
+
+// ---------- topo / chrome ----------
+const app = document.getElementById('app');
+const chip = document.getElementById('whoChip');
+chip.addEventListener('click', async () => {
+  if (confirm('Sair da conta?')) { await cli.auth.signOut(); location.hash = ''; }
+});
+document.getElementById('brandBtn').addEventListener('click', () => { if (EU) nav('#painel'); });
+const btnTopo = document.getElementById('btnTopo');
+btnTopo.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+window.addEventListener('scroll', () => { btnTopo.hidden = window.scrollY < 600; }, { passive: true });
+
+function syncChip() {
+  chip.hidden = !EU;
+  if (EU) chip.textContent = EU.nome + ' · sair';
+}
+
+// ---------- login ----------
+function renderLogin(msg) {
+  EU = null;
+  syncChip();
+  app.innerHTML = '<div class="login-box">' +
+    '<div class="eyebrow">Opera&ccedil;&atilde;o Instagram</div>' +
+    '<h1>Entrar</h1>' +
+    '<p class="sub">Use o email e a senha que o Lucas te passou. O progresso fica salvo na nuvem e sincroniza em todos os aparelhos.</p>' +
+    '<input class="campo" id="lgEmail" type="email" placeholder="email" autocomplete="username" inputmode="email">' +
+    '<input class="campo" id="lgSenha" type="password" placeholder="senha" autocomplete="current-password">' +
+    '<button class="btn primary" id="lgBtn" style="width:100%;">Entrar</button>' +
+    (msg ? '<p class="erro">' + esc(msg) + '</p>' : '') +
+    '<p class="note">Dica: fixe essa p&aacute;gina na tela inicial do iPhone (Compartilhar &rarr; Adicionar &agrave; Tela de In&iacute;cio).</p>' +
+    '</div>';
+  const entra = async () => {
+    const email = document.getElementById('lgEmail').value.trim();
+    const senha = document.getElementById('lgSenha').value;
+    if (!email || !senha) { renderLogin('Preencha email e senha.'); return; }
+    document.getElementById('lgBtn').textContent = 'Entrando…';
+    const { error } = await cli.auth.signInWithPassword({ email, password: senha });
+    if (error) renderLogin('Email ou senha incorretos.');
+  };
+  document.getElementById('lgBtn').addEventListener('click', entra);
+  document.getElementById('lgSenha').addEventListener('keydown', e => { if (e.key === 'Enter') entra(); });
+}
+
+// ---------- painel ----------
+function renderPainel() {
+  syncChip();
+  const gestor = EU.papel === 'gestor';
+  const meus = celsDe(EU.email);
+  const listaOps = gestor ? OPERADORES : [OPERADORES.find(o => o.email === EU.email)].filter(Boolean);
+
+  let h = '<div class="eyebrow">Painel de ' + esc(EU.nome) + (gestor ? ' &middot; gestor' : '') + '</div>';
+  h += '<h1>Celulares e contas</h1>';
+  h += '<p class="sub">' + (gestor ? 'Vis&atilde;o de toda a opera&ccedil;&atilde;o, em tempo real. Toque numa conta pra abrir o checklist.' : 'Toque numa conta pra abrir o checklist da regi&atilde;o dela.') + '</p>';
+
+  for (const op of listaOps) {
+    const cels = celsDe(op.email);
+    if (gestor) h += '<div class="eyebrow" style="margin-top:18px;">' + esc(op.nome) + (cels.length ? '' : ' &middot; sem celulares') + '</div>';
+    if (!cels.length && !gestor) h += '<div class="card">Nenhum celular atribu&iacute;do a voc&ecirc; ainda. Fale com o Lucas.</div>';
+    for (const cel of cels) {
+      const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+      h += '<div class="card"><div class="cel-head"><h2>' + esc(cel.nome) + '</h2>';
+      if (gestor) {
+        h += '<span class="g-row"><label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
+          Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === cel.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
+          '</select>' +
+          '<label>operador</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="operador_email">' +
+          OPERADORES.map(o => '<option value="' + esc(o.email) + '"' + (o.email === cel.operador_email ? ' selected' : '') + '>' + esc(o.nome) + '</option>').join('') +
+          '</select></span>';
+      } else {
+        h += '<span class="cel-region">' + esc(reg) + '</span>';
+      }
+      h += '</div>';
+      for (const conta of contasDoCel(cel.id)) {
+        const r = resumoConta(conta.id);
+        const at = atuais(conta.id);
+        h += '<div class="conta-row" data-conta="' + esc(conta.id) + '">' +
+          '<div class="conta-main"><div class="conta-user">' + esc(conta.usuario) + '</div>' +
+          '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
+          (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
+          '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
+          '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
+      }
+      h += '</div>';
+    }
+  }
+
+  h += '<button class="btn" id="btnRel" style="width:100%;margin-top:6px;">Copiar relat&oacute;rio</button>';
+  if (gestor) {
+    h += '<div class="card" style="margin-top:12px;"><h2 style="font-size:14px;">Migrar progresso da vers&atilde;o antiga</h2>' +
+      '<p class="note" style="margin-top:6px;">Cole aqui um c&oacute;digo de backup (CF1:...) da p&aacute;gina antiga pra importar as marca&ccedil;&otilde;es pro banco.</p>' +
+      '<textarea class="bk-area" id="mgArea" placeholder="CF1:..."></textarea>' +
+      '<button class="btn" id="mgBtn" style="margin-top:10px;">Importar pro banco</button></div>';
+  }
+  h += '<p class="note">Regi&otilde;es mapeadas sem celular: ' +
+    Object.keys(PERFIS).filter(s => !CELULARES.some(c => c.regiao === s)).map(s => esc(PERFIS[s].nome)).join(' &middot; ') + '.</p>';
+  app.innerHTML = h;
+
+  app.querySelectorAll('.conta-row').forEach(r => r.addEventListener('click', () => nav('#c/' + encodeURIComponent(r.dataset.conta))));
+  document.getElementById('btnRel').addEventListener('click', copiaRelatorio);
+  app.querySelectorAll('select[data-gcel]').forEach(s => s.addEventListener('change', async () => {
+    const upd = {}; upd[s.dataset.campo] = s.value;
+    const { error } = await cli.from('celulares').update(upd).eq('id', s.dataset.gcel);
+    if (error) { toast('Falha ao salvar atribuição.'); }
+    else { await recarregaConfig(); toast('Atribuição salva.'); route(); }
+  }));
+  const mgBtn = document.getElementById('mgBtn');
+  if (mgBtn) mgBtn.addEventListener('click', migraBackup);
+  window.scrollTo(0, 0);
+}
+
+async function migraBackup() {
+  const raw = (document.getElementById('mgArea').value || '').trim();
+  if (raw.indexOf('CF1:') !== 0) { toast('Código inválido: deve começar com CF1:'); return; }
+  let dados;
+  try { dados = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4))))); } catch (e) { toast('Código inválido ou incompleto.'); return; }
+  const linhas = [];
+  const contasValidas = new Set(CONTAS.map(c => c.id));
+  const mapa = { 'cf_m_': 'concluido', 'cf_x_': 'descartado' };
+  for (const k in dados) {
+    for (const pref in mapa) {
+      if (k.indexOf(pref) === 0) {
+        const conta = k.slice(pref.length);
+        if (!contasValidas.has(conta)) continue;
+        for (const handle in dados[k]) linhas.push({ conta, handle, estado: mapa[pref], por: EU.email });
+      }
+    }
+    if (k.indexOf('cf_a_') === 0) {
+      const conta = k.slice(5);
+      if (!contasValidas.has(conta)) continue;
+      const arr = Array.isArray(dados[k]) ? dados[k] : [];
+      for (const handle of arr) linhas.push({ conta, handle, estado: 'seguindo', por: EU.email });
+    }
+  }
+  if (!linhas.length) { toast('Nada pra importar nesse código.'); return; }
+  for (let i = 0; i < linhas.length; i += 400) {
+    const { error } = await cli.from('progresso').upsert(linhas.slice(i, i + 400));
+    if (error) { toast('Falha na importação: ' + error.message); return; }
+  }
+  await carregaTudo();
+  toast(linhas.length + ' marcações importadas.');
+  route();
+}
+
+// ---------- tela da conta ----------
+let filtroStatus = 'todos';
+let busca = '';
+
+function renderConta(contaId) {
+  syncChip();
+  const conta = CONTAS.find(c => c.id === contaId);
+  const cel = celDe(conta);
+  const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+  const r = resumoConta(contaId);
+
+  let h = '<button class="back" id="btnBack">&larr; voltar pro painel</button>';
+  h += '<div class="eyebrow">' + esc(cel.nome) + ' &middot; ' + esc(reg) + '</div>';
+  h += '<h1>' + esc(conta.usuario) + '</h1>';
+  h += '<p class="sub">Bloco ' + BLOCOS[r.sl.idx] + ' de ' + r.sl.total + ' &middot; ' + r.sl.grupos.length + ' faculdades &middot; ' + r.sl.perfis.length + ' perfis-alvo (particulares primeiro)</p>';
+  h += '<div id="banner"></div>';
+  h += '<div class="foco"><b>Como operar:</b> ' + esc(conta.foco || FOCO_PADRAO) +
+    (EU.papel === 'gestor' ? ' <button class="minibtn" id="editFoco" style="margin-left:6px;">editar</button>' : '') + '</div>';
+  h += '<div class="statbar">' +
+    '<div class="stat"><div class="n" id="stN">&ndash;</div><div class="l">Conclu&iacute;dos</div></div>' +
+    '<div class="stat"><div class="n" id="stA">&ndash;</div><div class="l">Em andamento</div></div>' +
+    '<div class="stat"><div class="n" id="stP">&ndash;</div><div class="l">Progresso</div></div></div>';
+  h += '<div class="tools"><input class="search" id="busca" type="search" placeholder="Buscar @, faculdade..." value="' + esc(busca) + '">' +
+    '<button class="btn primary" id="btnRetomar">Retomar</button></div>';
+  h += '<select class="idx" id="idxFac"><option value="">Ir para faculdade&hellip;</option>' +
+    r.sl.grupos.map(g => '<option value="' + esc(g.f) + '">' + esc(g.f) + ' (' + g.perfis.length + ')</option>').join('') + '</select>';
+  h += '<div class="chips">' + [['todos','Todos'],['pend','Pendentes'],['done','Conclu&iacute;dos'],['desc','Descartados' + (r.nDesc ? ' (' + r.nDesc + ')' : '')]]
+    .map(([k, l]) => '<button class="chip' + (filtroStatus === k ? ' on' : '') + '" data-fs="' + k + '">' + l + '</button>').join('') + '</div>';
+  h += '<div class="card" id="lista" style="padding:4px 16px;"></div>';
+  app.innerHTML = h;
+
+  document.getElementById('btnBack').addEventListener('click', () => { busca = ''; filtroStatus = 'todos'; nav('#painel'); });
+  document.getElementById('busca').addEventListener('input', e => { busca = e.target.value; desenhaLista(contaId); });
+  document.getElementById('btnRetomar').addEventListener('click', () => {
+    const at = atuais(contaId);
+    if (at.length) { expandEScroll(contaId, at[0]); return; }
+    const prox = sliceDe(conta).perfis.find(p => !estadoDe(contaId, p.h));
+    if (prox) expandEScroll(contaId, prox.h);
+    else toast('Tudo resolvido nessa conta.');
+  });
+  document.getElementById('idxFac').addEventListener('change', e => {
+    const f = e.target.value;
+    if (!f) return;
+    if (abreGrp(contaId, f)) desenhaLista(contaId);
+    setTimeout(() => {
+      const head = document.querySelector('#lista .fac-head[data-g="' + CSS.escape(f) + '"]');
+      if (head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+    e.target.value = '';
+  });
+  app.querySelectorAll('.chip[data-fs]').forEach(c => c.addEventListener('click', () => { filtroStatus = c.dataset.fs; renderConta(contaId); }));
+  const ef = document.getElementById('editFoco');
+  if (ef) ef.addEventListener('click', async () => {
+    const novo = prompt('Instrução de foco dessa conta:', conta.foco || FOCO_PADRAO);
+    if (novo === null) return;
+    const { error } = await cli.from('contas').update({ foco: novo || null }).eq('id', contaId);
+    if (error) toast('Falha ao salvar o foco.');
+    else { await recarregaConfig(); toast('Foco salvo.'); renderConta(contaId); }
+  });
+  desenhaBanner(contaId);
+  desenhaLista(contaId);
+  renderContaStats(contaId);
+  window.scrollTo(0, 0);
+}
+
+function expandEScroll(contaId, handle) {
+  const sl = sliceDe(CONTAS.find(c => c.id === contaId));
+  const p = sl.perfis.find(x => x.h === handle);
+  if (p && abreGrp(contaId, p.f || 'Sem faculdade')) desenhaLista(contaId);
+  setTimeout(() => {
+    const row = document.querySelector('#lista .perfil[data-ph="' + CSS.escape(handle) + '"]');
+    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else toast('Esse perfil não aparece no filtro ativo.');
+  }, 60);
+}
+
+function desenhaBanner(contaId) {
+  const el = document.getElementById('banner');
+  if (!el) return;
+  const at = atuais(contaId);
+  if (!at.length) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="atual-banner"><span class="tag">Seguindo agora (' + at.length + ')</span>' +
+    at.map(h => '<div class="atual-item"><span class="h">' + esc(h) + '</span>' +
+      '<button class="btn" data-ir="' + esc(h) + '">Ver</button>' +
+      '<button class="btn primary" data-fimb="' + esc(h) + '">Conclu&iacute;do</button></div>').join('') +
+    '</div>';
+  el.querySelectorAll('[data-ir]').forEach(b => b.addEventListener('click', () => expandEScroll(contaId, b.dataset.ir)));
+  el.querySelectorAll('[data-fimb]').forEach(b => b.addEventListener('click', () => concluiAtual(contaId, b.dataset.fimb)));
+}
+
+function concluiAtual(contaId, handle) {
+  setProg(contaId, handle, 'concluido');
+  toast(handle + ' concluído.');
+  desenhaBanner(contaId);
+  desenhaLista(contaId);
+  renderContaStats(contaId);
+}
+
+function desenhaLista(contaId) {
+  const conta = CONTAS.find(c => c.id === contaId);
+  const sl = sliceDe(conta);
+  const p = PROG[contaId] || {};
+  const fechados = grpFechados(contaId);
+  const q = busca.trim().toLowerCase();
+  const buscando = q.length > 0;
+  const est = h => (p[h] ? p[h].estado : null);
+  const itens = sl.perfis.filter(x => {
+    const e = est(x.h);
+    if (filtroStatus === 'pend' && e) return false;
+    if (filtroStatus === 'done' && e !== 'concluido') return false;
+    if (filtroStatus === 'desc' && e !== 'descartado') return false;
+    if (q && !(x.h.toLowerCase().includes(q) || (x.f || '').toLowerCase().includes(q) || (x.t || '').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const el = document.getElementById('lista');
+  if (!itens.length) { el.innerHTML = '<p class="note" style="padding:10px 0;">Nenhum perfil nesse filtro.</p>'; return; }
+
+  let html = '';
+  let facAtualNome = null;
+  for (const x of itens) {
+    const fac = x.f || 'Sem faculdade';
+    if (fac !== facAtualNome) {
+      if (facAtualNome !== null) html += '</div>';
+      facAtualNome = fac;
+      const aberto = buscando || !fechados.includes(fac);
+      const doGrupo = itens.filter(y => (y.f || 'Sem faculdade') === fac);
+      const feitosGrupo = doGrupo.filter(y => est(y.h) === 'concluido').length;
+      const descGrupo = doGrupo.filter(y => est(y.h) === 'descartado').length;
+      html += '<div class="fac-head' + (aberto ? '' : ' fechado') + '" data-g="' + esc(fac) + '">' + esc(fac) +
+        '<span class="fac-badge' + (x.pr ? ' part' : '') + '">' + (x.pr ? 'PARTICULAR' : 'P&Uacute;BLICA') + '</span>' +
+        '<span class="caret">&#9662;</span>' +
+        '<small>' + feitosGrupo + '/' + (doGrupo.length - descGrupo) + ' conclu&iacute;dos' + (descGrupo ? ' &middot; ' + descGrupo + ' desc.' : '') + '</small></div>';
+      html += '<div class="grp" data-gc="' + esc(fac) + '"' + (aberto ? '' : ' hidden') + '>';
+    }
+    const e = est(x.h);
+    const done = e === 'concluido';
+    const disc = e === 'descartado';
+    const isAt = e === 'seguindo';
+    const seg = x.s ? x.s.toLocaleString('pt-BR') + ' seg.' : 'seg. n/d';
+    let alerta = '';
+    if (x.d) alerta += ' &middot; <span class="warn">&#9888; duvidoso</span>';
+    if (x.i) alerta += ' &middot; <span class="warn">&#9888; inativo?</span>';
+    let acts = '';
+    if (disc) acts = '<div class="acts"><button class="minibtn" data-rest="' + esc(x.h) + '">Restaurar</button></div>';
+    else if (isAt) acts = '<div class="acts"><button class="minibtn fim" data-fim="' + esc(x.h) + '">Conclu&iacute;do</button></div>';
+    else if (!done) acts = '<div class="acts"><button class="minibtn go" data-go="' + esc(x.h) + '">Come&ccedil;ar</button>' +
+      '<button class="minibtn" data-desc="' + esc(x.h) + '" title="Perfil morto ou privado">Descartar</button></div>';
+    html += '<div class="perfil' + (done ? ' done' : '') + (disc ? ' desc' : '') + (isAt ? ' atual' : '') + '" data-ph="' + esc(x.h) + '">' +
+      '<input type="checkbox" data-h="' + esc(x.h) + '"' + (done ? ' checked' : '') + (disc ? ' disabled' : '') + ' title="Marcar concluído">' +
+      '<span class="info"><a href="https://www.instagram.com/' + esc(x.h.slice(1)) + '/" target="_blank" rel="noopener">' + esc(x.h) + '</a>' +
+      (isAt ? '<span class="pill">seguindo agora</span>' : '') +
+      (disc ? '<span class="pill off">descartado</span>' : '') +
+      '<div class="meta">' + esc(x.t) + ' &middot; ' + seg + alerta + '</div></span>' +
+      acts + '</div>';
+  }
+  if (facAtualNome !== null) html += '</div>';
+  el.innerHTML = html;
+
+  el.querySelectorAll('.fac-head').forEach(hd => hd.addEventListener('click', () => {
+    toggleGrp(contaId, hd.dataset.g);
+    const grp = el.querySelector('.grp[data-gc="' + CSS.escape(hd.dataset.g) + '"]');
+    if (grp) grp.hidden = !grp.hidden;
+    hd.classList.toggle('fechado');
+  }));
+  const redesenha = () => { desenhaBanner(contaId); desenhaLista(contaId); renderContaStats(contaId); };
+  el.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => {
+    setProg(contaId, cb.dataset.h, cb.checked ? 'concluido' : null);
+    redesenha();
+  }));
+  el.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    setProg(contaId, b.dataset.go, 'seguindo');
+    toast('Seguindo agora: ' + b.dataset.go);
+    redesenha();
+  }));
+  el.querySelectorAll('[data-fim]').forEach(b => b.addEventListener('click', () => concluiAtual(contaId, b.dataset.fim)));
+  el.querySelectorAll('[data-desc]').forEach(b => b.addEventListener('click', () => {
+    setProg(contaId, b.dataset.desc, 'descartado');
+    toast(b.dataset.desc + ' descartado.');
+    renderConta(contaId);
+  }));
+  el.querySelectorAll('[data-rest]').forEach(b => b.addEventListener('click', () => {
+    setProg(contaId, b.dataset.rest, null);
+    toast(b.dataset.rest + ' de volta na lista.');
+    renderConta(contaId);
+  }));
+}
+
+function renderContaStats(contaId) {
+  const r = resumoConta(contaId);
+  const n = document.getElementById('stN'), aa = document.getElementById('stA'), pp = document.getElementById('stP');
+  if (n) { n.textContent = r.feitos + '/' + r.total; aa.textContent = r.nAt; pp.textContent = r.pct + '%'; }
+}
+
+function copiaRelatorio() {
+  const gestor = EU.papel === 'gestor';
+  const ops = gestor ? OPERADORES : [OPERADORES.find(o => o.email === EU.email)].filter(Boolean);
+  let txt = 'Relatorio de follow · ' + hojeStr(Date.now()) + '\n';
+  for (const op of ops) {
+    const cels = celsDe(op.email);
+    if (!cels.length) continue;
+    txt += '\n== ' + op.nome + ' ==\n';
+    for (const cel of cels) {
+      txt += cel.nome + ' · ' + (PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao) + '\n';
+      for (const conta of contasDoCel(cel.id)) {
+        const r = resumoConta(conta.id);
+        const at = atuais(conta.id);
+        txt += conta.usuario + ': ' + r.feitos + '/' + r.total + ' concluidos' +
+          (r.nDesc ? ' · ' + r.nDesc + ' descartados' : '') +
+          (at.length ? ' · seguindo agora ' + at.join(', ') : '') + '\n';
+      }
+    }
+  }
+  navigator.clipboard.writeText(txt).then(
+    () => toast('Relatório copiado. Cola no WhatsApp.'),
+    () => toast('Não deu pra copiar automaticamente.')
+  );
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+// ---------- inicialização ----------
+cli.auth.onAuthStateChange(async (evento, sessao) => {
+  if (!sessao) { carregado = false; renderLogin(); return; }
+  if (carregado) return;
+  const email = sessao.user.email;
+  app.innerHTML = '<p class="note" style="text-align:center;padding-top:40px;">Carregando dados&hellip;</p>';
+  const ok = await carregaTudo();
+  if (!ok) return;
+  EU = OPERADORES.find(o => o.email === email) || null;
+  if (!EU) {
+    app.innerHTML = '<div class="card" style="margin-top:32px;">Seu login (' + esc(email) + ') ainda n&atilde;o tem perfil na opera&ccedil;&atilde;o. Fale com o Lucas.</div>' +
+      '<button class="btn" id="saiBtn">Sair</button>';
+    document.getElementById('saiBtn').addEventListener('click', () => cli.auth.signOut());
+    return;
+  }
+  carregado = true;
+  syncChip();
+  ligaTempoReal();
+  if (!location.hash) { try { history.replaceState(null, '', '#painel'); } catch (e) {} }
+  route();
+});
+</script>
+</body>
+</html>
