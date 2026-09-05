@@ -451,7 +451,8 @@ window.addEventListener('hashchange', route);
 const app = document.getElementById('app');
 const chip = document.getElementById('whoChip');
 chip.addEventListener('click', async () => {
-  if (confirm('Sair da conta?')) { await cli.auth.signOut(); location.hash = ''; }
+  // scope local: sai só deste aparelho, sem derrubar o login nos outros
+  if (confirm('Sair da conta neste aparelho?')) { await cli.auth.signOut({ scope: 'local' }); location.hash = ''; }
 });
 document.getElementById('brandBtn').addEventListener('click', () => { if (EU) nav('#painel'); });
 const btnTopo = document.getElementById('btnTopo');
