@@ -178,11 +178,14 @@
     font-family: inherit; font-size: 11px; font-weight: 700;
     padding: 4px 6px; border: 1px solid var(--line); border-radius: 7px;
     background: var(--card); color: var(--muted);
-    margin-left: auto; flex-shrink: 0;
+    margin-left: 8px; flex-shrink: 0;
   }
   .st-sel.ativa { color: var(--teal-ink); border-color: var(--teal); }
   .st-sel.pausada { color: var(--warn); border-color: var(--warn); }
   .st-sel.ban { color: #c0453f; border-color: #c0453f; }
+  .st-sel option.ativa { color: var(--teal-ink); }
+  .st-sel option.pausada { color: var(--warn); }
+  .st-sel option.ban { color: #c0453f; }
   .conta-row.pausada .conta-user, .conta-row.ban .conta-user { opacity: 0.6; }
   .fac-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
@@ -564,7 +567,7 @@ function renderPainel() {
       const st = conta.status || 'ativa';
       const stSel = podeStatus
         ? '<select class="st-sel ' + st + '" data-gst="' + esc(conta.id) + '">' +
-          [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
+          [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option class="' + v + '" value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
           '</select>'
         : '';
       c += '<div class="conta-row ' + st + '" data-conta="' + esc(conta.id) + '">' +
