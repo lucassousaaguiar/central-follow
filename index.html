@@ -152,6 +152,21 @@
     transition: transform 0.15s; display: inline-block;
   }
   .fac-head.fechado .caret { transform: rotate(-90deg); }
+  .op-head {
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none;
+    margin: 20px 0 10px; padding: 4px 0;
+  }
+  .op-head .nome {
+    font-size: 13px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.18em; color: var(--teal-ink);
+  }
+  .op-head small { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .op-head .caret {
+    margin-left: auto; color: var(--muted); font-size: 13px;
+    transition: transform 0.15s; display: inline-block;
+  }
+  .op-head.fechado .caret { transform: rotate(-90deg); }
   .fac-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
     border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px;
@@ -491,45 +506,71 @@ function renderLogin(msg) {
 }
 
 // ---------- painel ----------
+function opsAbertos() { const v = lsGet('cf_goab', []); return Array.isArray(v) ? v : []; }
+
 function renderPainel() {
   syncChip();
   const gestor = EU.papel === 'gestor';
-  const meus = celsDe(EU.email);
-  const listaOps = gestor ? OPERADORES : [OPERADORES.find(o => o.email === EU.email)].filter(Boolean);
+  let listaOps;
+  if (gestor) {
+    listaOps = OPERADORES.slice().sort((a, b) => {
+      if (a.email === EU.email) return -1;
+      if (b.email === EU.email) return 1;
+      return a.nome.localeCompare(b.nome);
+    });
+  } else {
+    listaOps = [OPERADORES.find(o => o.email === EU.email)].filter(Boolean);
+  }
 
   let h = '<div class="eyebrow">Painel de ' + esc(EU.nome) + (gestor ? ' &middot; gestor' : '') + '</div>';
   h += '<h1>Celulares e contas</h1>';
-  h += '<p class="sub">' + (gestor ? 'Vis&atilde;o de toda a opera&ccedil;&atilde;o, em tempo real. Toque numa conta pra abrir o checklist.' : 'Toque numa conta pra abrir o checklist da regi&atilde;o dela.') + '</p>';
+  h += '<p class="sub">' + (gestor ? 'Toque no nome de um operador pra abrir os celulares dele.' : 'Toque numa conta pra abrir o checklist da regi&atilde;o dela.') + '</p>';
 
+  const celCard = (cel) => {
+    const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+    let c = '<div class="card"><div class="cel-head"><h2>' + esc(cel.nome) + '</h2>';
+    if (gestor) {
+      c += '<span class="g-row"><label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
+        Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === cel.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
+        '</select>' +
+        '<label>operador</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="operador_email">' +
+        OPERADORES.map(o => '<option value="' + esc(o.email) + '"' + (o.email === cel.operador_email ? ' selected' : '') + '>' + esc(o.nome) + '</option>').join('') +
+        '</select></span>';
+    } else {
+      c += '<span class="cel-region">' + esc(reg) + '</span>';
+    }
+    c += '</div>';
+    for (const conta of contasDoCel(cel.id)) {
+      const r = resumoConta(conta.id);
+      const at = atuais(conta.id);
+      c += '<div class="conta-row" data-conta="' + esc(conta.id) + '">' +
+        '<div class="conta-main"><div class="conta-user">' + esc(conta.usuario) + '</div>' +
+        '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
+        (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
+        '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
+        '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
+    }
+    c += '</div>';
+    return c;
+  };
+
+  const abertos = opsAbertos();
   for (const op of listaOps) {
     const cels = celsDe(op.email);
-    if (gestor) h += '<div class="eyebrow" style="margin-top:18px;">' + esc(op.nome) + (cels.length ? '' : ' &middot; sem celulares') + '</div>';
-    if (!cels.length && !gestor) h += '<div class="card">Nenhum celular atribu&iacute;do a voc&ecirc; ainda. Fale com o Lucas.</div>';
-    for (const cel of cels) {
-      const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
-      h += '<div class="card"><div class="cel-head"><h2>' + esc(cel.nome) + '</h2>';
-      if (gestor) {
-        h += '<span class="g-row"><label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
-          Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === cel.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
-          '</select>' +
-          '<label>operador</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="operador_email">' +
-          OPERADORES.map(o => '<option value="' + esc(o.email) + '"' + (o.email === cel.operador_email ? ' selected' : '') + '>' + esc(o.nome) + '</option>').join('') +
-          '</select></span>';
-      } else {
-        h += '<span class="cel-region">' + esc(reg) + '</span>';
-      }
+    const nContas = cels.reduce((n, cel) => n + contasDoCel(cel.id).length, 0);
+    if (gestor) {
+      const aberto = abertos.includes(op.email);
+      h += '<div class="op-head' + (aberto ? '' : ' fechado') + '" data-oph="' + esc(op.email) + '">' +
+        '<span class="nome">' + esc(op.nome) + (op.email === EU.email ? ' (voc&ecirc;)' : '') + '</span>' +
+        '<small>' + (cels.length ? cels.length + ' celulares &middot; ' + nContas + ' contas' : 'sem celulares ainda') + '</small>' +
+        '<span class="caret">&#9662;</span></div>';
+      h += '<div class="op-body" data-opb="' + esc(op.email) + '"' + (aberto ? '' : ' hidden') + '>';
+      if (!cels.length) h += '<div class="card">Nenhum celular atribu&iacute;do. Use o seletor "operador" de um celular pra trazer pra c&aacute;.</div>';
+      for (const cel of cels) h += celCard(cel);
       h += '</div>';
-      for (const conta of contasDoCel(cel.id)) {
-        const r = resumoConta(conta.id);
-        const at = atuais(conta.id);
-        h += '<div class="conta-row" data-conta="' + esc(conta.id) + '">' +
-          '<div class="conta-main"><div class="conta-user">' + esc(conta.usuario) + '</div>' +
-          '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
-          (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
-          '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
-          '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
-      }
-      h += '</div>';
+    } else {
+      if (!cels.length) h += '<div class="card">Nenhum celular atribu&iacute;do a voc&ecirc; ainda. Fale com o Lucas.</div>';
+      for (const cel of cels) h += celCard(cel);
     }
   }
 
@@ -544,6 +585,16 @@ function renderPainel() {
     Object.keys(PERFIS).filter(s => !CELULARES.some(c => c.regiao === s)).map(s => esc(PERFIS[s].nome)).join(' &middot; ') + '.</p>';
   app.innerHTML = h;
 
+  app.querySelectorAll('.op-head').forEach(hd => hd.addEventListener('click', () => {
+    const email = hd.dataset.oph;
+    const ab = opsAbertos();
+    const i = ab.indexOf(email);
+    if (i >= 0) ab.splice(i, 1); else ab.push(email);
+    lsSet('cf_goab', ab);
+    const body = app.querySelector('.op-body[data-opb="' + CSS.escape(email) + '"]');
+    if (body) body.hidden = !body.hidden;
+    hd.classList.toggle('fechado');
+  }));
   app.querySelectorAll('.conta-row').forEach(r => r.addEventListener('click', () => nav('#c/' + encodeURIComponent(r.dataset.conta))));
   document.getElementById('btnRel').addEventListener('click', copiaRelatorio);
   app.querySelectorAll('select[data-gcel]').forEach(s => s.addEventListener('change', async () => {
