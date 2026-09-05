@@ -186,6 +186,29 @@
   .st-sel option.ativa { color: var(--teal-ink); }
   .st-sel option.pausada { color: var(--warn); }
   .st-sel option.ban { color: #c0453f; }
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(8, 14, 24, 0.6);
+    z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    width: 100%; max-width: 430px; max-height: 85vh; overflow: auto; padding: 20px;
+  }
+  .modal h2 { margin-bottom: 2px; }
+  .modal .mm { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .dado { margin-bottom: 10px; }
+  .dado label {
+    display: block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--muted); margin-bottom: 3px;
+  }
+  .dado .linha { display: flex; gap: 6px; }
+  .dado input {
+    flex: 1; min-width: 0;
+    padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px;
+    font-family: inherit; font-size: 14px; background: var(--bg); color: var(--ink);
+  }
+  .dado input:focus { outline: none; border-color: var(--teal); }
+  .modal .rodape { display: flex; gap: 8px; margin-top: 16px; }
   .conta-row.pausada .conta-user, .conta-row.ban .conta-user { opacity: 0.6; }
   .fac-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.12em;
@@ -548,16 +571,19 @@ function renderPainel() {
 
   const celCard = (cel) => {
     const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+    const dono = cel.operador_email === EU.email;
     let c = '<div class="card"><div class="cel-head"><h2>' + esc(cel.nome) + '</h2>';
     if (gestor) {
-      c += '<span class="g-row"><label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
+      c += '<span class="g-row"><button class="minibtn" data-ddc="' + esc(cel.id) + '">Dados</button>' +
+        '<label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
         Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === cel.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
         '</select>' +
         '<label>operador</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="operador_email">' +
         OPERADORES.map(o => '<option value="' + esc(o.email) + '"' + (o.email === cel.operador_email ? ' selected' : '') + '>' + esc(o.nome) + '</option>').join('') +
         '</select></span>';
     } else {
-      c += '<span class="cel-region">' + esc(reg) + '</span>';
+      c += '<span class="g-row">' + (dono ? '<button class="minibtn" data-ddc="' + esc(cel.id) + '">Dados</button>' : '') +
+        '<span class="cel-region">' + esc(reg) + '</span></span>';
     }
     c += '</div>';
     const podeStatus = gestor || cel.operador_email === EU.email;
@@ -566,9 +592,11 @@ function renderPainel() {
       const at = atuais(conta.id);
       const st = conta.status || 'ativa';
       const stSel = podeStatus
-        ? '<select class="st-sel ' + st + '" data-gst="' + esc(conta.id) + '">' +
+        ? '<span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;">' +
+          '<button class="minibtn" data-dd="' + esc(conta.id) + '">Dados</button>' +
+          '<select class="st-sel ' + st + '" data-gst="' + esc(conta.id) + '" style="margin-left:0;">' +
           [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option class="' + v + '" value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
-          '</select>'
+          '</select></span>'
         : '';
       c += '<div class="conta-row ' + st + '" data-conta="' + esc(conta.id) + '">' +
         '<div class="conta-main"><div class="conta-user" style="display:flex;align-items:center;gap:2px;"><span class="dot ' + st + '" title="' + st + '"></span>' + esc(conta.usuario) + stSel + '</div>' +
@@ -616,6 +644,8 @@ function renderPainel() {
     if (body) body.hidden = !body.hidden;
     hd.classList.toggle('fechado');
   }));
+  app.querySelectorAll('[data-dd]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); abreDadosConta(b.dataset.dd); }));
+  app.querySelectorAll('[data-ddc]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); abreDadosCel(b.dataset.ddc); }));
   app.querySelectorAll('.st-sel').forEach(s => {
     s.addEventListener('click', e => e.stopPropagation());
     s.addEventListener('change', async e => {
@@ -854,6 +884,73 @@ function copiaRelatorio() {
     () => toast('Relatório copiado. Cola no WhatsApp.'),
     () => toast('Não deu pra copiar automaticamente.')
   );
+}
+
+// ---------- popup de dados (credenciais ficam SÓ no banco, nunca no código) ----------
+function fechaModal() { const m = document.getElementById('modalBg'); if (m) m.remove(); }
+function abreModal(html) {
+  fechaModal();
+  const d = document.createElement('div');
+  d.className = 'modal-bg';
+  d.id = 'modalBg';
+  d.innerHTML = '<div class="modal">' + html + '</div>';
+  d.addEventListener('click', e => { if (e.target === d) fechaModal(); });
+  document.body.appendChild(d);
+  d.querySelectorAll('[data-cp]').forEach(b => b.addEventListener('click', () => {
+    const inp = document.getElementById(b.dataset.cp);
+    if (inp && inp.value) navigator.clipboard.writeText(inp.value).then(() => toast('Copiado.'), () => toast('Não deu pra copiar.'));
+    else toast('Campo vazio.');
+  }));
+  const fx = d.querySelector('#ddFechar');
+  if (fx) fx.addEventListener('click', fechaModal);
+}
+function campoDado(id, label, valor, edit) {
+  return '<div class="dado"><label>' + label + '</label><div class="linha">' +
+    '<input id="' + id + '" value="' + esc(valor || '') + '"' + (edit ? '' : ' readonly') + ' autocomplete="off">' +
+    '<button class="btn" data-cp="' + id + '">Copiar</button></div></div>';
+}
+function abreDadosConta(contaId) {
+  const conta = CONTAS.find(c => c.id === contaId);
+  const cel = celDe(conta);
+  const edit = EU.papel === 'gestor' || cel.operador_email === EU.email;
+  abreModal('<h2>' + esc(conta.usuario) + '</h2><div class="mm">' + esc(cel.nome) + ' &middot; dados da conta</div>' +
+    campoDado('ddA', 'Email da conta', conta.email, edit) +
+    campoDado('ddB', 'Senha do Instagram', conta.senha_ig, edit) +
+    campoDado('ddC', 'Senha do email', conta.senha_email, edit) +
+    campoDado('ddD', 'Observa&ccedil;&otilde;es', conta.obs, edit) +
+    '<div class="rodape">' + (edit ? '<button class="btn primary" id="ddSalvar">Salvar</button>' : '') +
+    '<button class="btn" id="ddFechar">Fechar</button></div>');
+  const sv = document.getElementById('ddSalvar');
+  if (sv) sv.addEventListener('click', async () => {
+    const upd = {
+      email: document.getElementById('ddA').value.trim() || null,
+      senha_ig: document.getElementById('ddB').value.trim() || null,
+      senha_email: document.getElementById('ddC').value.trim() || null,
+      obs: document.getElementById('ddD').value.trim() || null,
+    };
+    const { error } = await cli.from('contas').update(upd).eq('id', contaId);
+    if (error) toast('Falha ao salvar: ' + error.message);
+    else { await recarregaConfig(); toast('Dados salvos.'); fechaModal(); }
+  });
+}
+function abreDadosCel(celId) {
+  const cel = CELULARES.find(c => c.id === celId);
+  const edit = EU.papel === 'gestor';
+  abreModal('<h2>' + esc(cel.nome) + '</h2><div class="mm">Apple ID do aparelho</div>' +
+    campoDado('ddA', 'Email do Apple ID', cel.apple_email, edit) +
+    campoDado('ddB', 'Senha do Apple ID', cel.apple_senha, edit) +
+    '<div class="rodape">' + (edit ? '<button class="btn primary" id="ddSalvar">Salvar</button>' : '') +
+    '<button class="btn" id="ddFechar">Fechar</button></div>');
+  const sv = document.getElementById('ddSalvar');
+  if (sv) sv.addEventListener('click', async () => {
+    const upd = {
+      apple_email: document.getElementById('ddA').value.trim() || null,
+      apple_senha: document.getElementById('ddB').value.trim() || null,
+    };
+    const { error } = await cli.from('celulares').update(upd).eq('id', celId);
+    if (error) toast('Falha ao salvar: ' + error.message);
+    else { await recarregaConfig(); toast('Dados salvos.'); fechaModal(); }
+  });
 }
 
 let toastTimer = null;
