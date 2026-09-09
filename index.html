@@ -413,6 +413,8 @@
     clip-path: polygon(14% 44%, 0% 65%, 40% 100%, 100% 16%, 80% 0%, 38% 68%);
   }
   .perfil input[type="checkbox"]:disabled { opacity: 0.35; cursor: default; }
+
+  .chk-vazio { width: 19px; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -915,8 +917,11 @@ function desenhaLista(contaId) {
     else if (isAt) acts = '<div class="acts"><button class="minibtn fim" data-fim="' + esc(x.h) + '">Conclu&iacute;do</button></div>';
     else if (!done) acts = '<div class="acts"><button class="minibtn go" data-go="' + esc(x.h) + '">Come&ccedil;ar</button>' +
       '<button class="minibtn" data-desc="' + esc(x.h) + '" title="Perfil morto ou privado">Descartar</button></div>';
+    const chk = (isAt || done)
+      ? '<input type="checkbox" data-h="' + esc(x.h) + '"' + (done ? ' checked' : '') + ' title="Marcar concluído">'
+      : '<span class="chk-vazio"></span>';
     html += '<div class="perfil' + (done ? ' done' : '') + (disc ? ' desc' : '') + (isAt ? ' atual' : '') + '" data-ph="' + esc(x.h) + '">' +
-      '<input type="checkbox" data-h="' + esc(x.h) + '"' + (done ? ' checked' : '') + (disc ? ' disabled' : '') + ' title="Marcar concluído">' +
+      chk +
       '<span class="info"><a href="https://www.instagram.com/' + esc(x.h.slice(1)) + '/" target="_blank" rel="noopener">' + esc(x.h) + '</a>' +
       (isAt ? '<span class="pill">seguindo agora</span>' : '') +
       (disc ? '<span class="pill off">descartado</span>' : '') +
