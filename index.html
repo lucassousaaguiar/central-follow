@@ -29,7 +29,7 @@
     --err: #B3413C;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --bg: #0A0B0D;
       --card: #131519;
       --ink: #E8ECF2;
@@ -362,7 +362,7 @@
     --hover: rgba(22, 40, 63, 0.04);
   }
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
       --card2: #1A1D23;
       --elev: inset 0 1px 0 rgba(255, 255, 255, 0.04);
       --elev2: 0 24px 64px rgba(0, 0, 0, 0.55);
@@ -415,14 +415,47 @@
   .perfil input[type="checkbox"]:disabled { opacity: 0.35; cursor: default; }
 
   .chk-vazio { width: 19px; flex-shrink: 0; }
-</style>
+
+  /* ===== toggle manual de tema ===== */
+  :root[data-theme="dark"] {
+    --bg: #0A0B0D;
+    --card: #131519;
+    --ink: #E8ECF2;
+    --muted: #7E92A9;
+    --line: rgba(232, 236, 242, 0.11);
+    --rule: #E8ECF2;
+    --teal: #3ABFA0;
+    --teal-ink: #6FD9BF;
+    --teal-soft: rgba(58, 191, 160, 0.10);
+    --navy: #0A0B0D;
+    --navy-ink: #E8ECF2;
+    --done: #56687D;
+    --warn: #D3A249;
+    --err: #E28B84;
+    --card2: #1A1D23;
+    --elev: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --elev2: 0 24px 64px rgba(0, 0, 0, 0.55);
+    --hover: rgba(255, 255, 255, 0.035);
+  }
+  .top-right { display: flex; gap: 8px; align-items: center; }
+  .theme-btn {
+    width: 27px; height: 25px; padding: 0;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: none; color: var(--ink); cursor: pointer;
+    font-size: 13px; line-height: 1; font-family: inherit;
+    transition: border-color 0.15s ease;
+  }
+  .theme-btn:hover { border-color: var(--muted); }</style>
 </head>
 <body>
 
 <header class="top">
   <div class="top-in">
     <button class="brand" id="brandBtn" title="Início">publica<span class="mark">MED</span>.<span class="suffix"> &middot; Central de Follow</span></button>
-    <button class="who-chip" id="whoChip" hidden></button>
+    <span class="top-right">
+      <button class="theme-btn" id="themeBtn" title="Alternar tema claro/escuro">&#9789;</button>
+      <button class="who-chip" id="whoChip" hidden></button>
+    </span>
   </div>
 </header>
 
@@ -618,6 +651,25 @@ document.getElementById('brandBtn').addEventListener('click', () => { if (EU) na
 const btnTopo = document.getElementById('btnTopo');
 btnTopo.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 window.addEventListener('scroll', () => { btnTopo.hidden = window.scrollY < 600; }, { passive: true });
+
+// tema claro/escuro manual (sem escolha salva, segue o sistema)
+const themeBtn = document.getElementById('themeBtn');
+function temaEfetivo() {
+  return lsGet('cf_tema', null) || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
+function aplicaTema() {
+  const t = lsGet('cf_tema', null);
+  if (t) document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+  themeBtn.innerHTML = temaEfetivo() === 'dark' ? '&#9788;' : '&#9789;';
+  const mc = document.querySelector('meta[name="theme-color"]');
+  if (mc) mc.setAttribute('content', temaEfetivo() === 'dark' ? '#0A0B0D' : '#F6F5F1');
+}
+themeBtn.addEventListener('click', () => {
+  lsSet('cf_tema', temaEfetivo() === 'dark' ? 'light' : 'dark');
+  aplicaTema();
+});
+aplicaTema();
 
 function syncChip() {
   chip.hidden = !EU;
