@@ -580,10 +580,7 @@ async function carregaTudo() {
     cli.from('contas').select('*').order('ordem'),
     cli.from('progresso').select('*'),
   ]);
-  if (ops.error || cels.error || cts.error || prg.error) {
-    app.innerHTML = '<div class="card" style="margin-top:32px;">N&atilde;o consegui carregar os dados. Recarregue a p&aacute;gina.</div>';
-    return false;
-  }
+  if (ops.error || cels.error || cts.error || prg.error) return false;
   OPERADORES = ops.data;
   CELULARES = cels.data;
   CONTAS = cts.data;
@@ -1156,7 +1153,14 @@ async function boot(sessao) {
   bootando = true;
   const email = sessao.user.email;
   app.innerHTML = '<p class="note" style="text-align:center;padding-top:40px;">Carregando dados&hellip;</p>';
-  const ok = await carregaTudo();
+  // ao reabrir a página o token pode estar vencido e a renovação ainda em andamento:
+  // espera a sessão assentar e tenta 3x com intervalo antes de declarar falha
+  try { await cli.auth.getSession(); } catch (e) {}
+  let ok = false;
+  for (let tentativa = 0; tentativa < 3 && !ok; tentativa++) {
+    if (tentativa) await new Promise(r => setTimeout(r, 900 * tentativa));
+    ok = await carregaTudo();
+  }
   if (!ok) {
     bootando = false;
     app.innerHTML = '<div class="card" style="margin-top:32px;">N&atilde;o consegui carregar os dados.</div>' +
