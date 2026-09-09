@@ -936,18 +936,46 @@ function abreDadosConta(contaId) {
 function abreDadosCel(celId) {
   const cel = CELULARES.find(c => c.id === celId);
   const edit = EU.papel === 'gestor';
-  abreModal('<h2>' + esc(cel.nome) + '</h2><div class="mm">Apple ID do aparelho</div>' +
-    campoDado('ddA', 'Email do Apple ID', cel.apple_email, edit) +
-    campoDado('ddB', 'Senha do Apple ID', cel.apple_senha, edit) +
+  const ehIphone = !!(cel.apple_email || /iphone/i.test(cel.nome));
+
+  if (ehIphone) {
+    abreModal('<h2>' + esc(cel.nome) + '</h2><div class="mm">Apple ID do aparelho</div>' +
+      campoDado('ddA', 'Email do Apple ID', cel.apple_email, edit) +
+      campoDado('ddB', 'Senha do Apple ID', cel.apple_senha, edit) +
+      '<div class="rodape">' + (edit ? '<button class="btn primary" id="ddSalvar">Salvar</button>' : '') +
+      '<button class="btn" id="ddFechar">Fechar</button></div>');
+    const sv = document.getElementById('ddSalvar');
+    if (sv) sv.addEventListener('click', async () => {
+      const upd = {
+        apple_email: document.getElementById('ddA').value.trim() || null,
+        apple_senha: document.getElementById('ddB').value.trim() || null,
+      };
+      const { error } = await cli.from('celulares').update(upd).eq('id', celId);
+      if (error) toast('Falha ao salvar: ' + error.message);
+      else { await recarregaConfig(); toast('Dados salvos.'); fechaModal(); }
+    });
+    return;
+  }
+
+  // Android: lista de emails do aparelho (formato no banco: "email ; senha", um por linha)
+  const linhas = String(cel.emails || '').split('\n').map(l => l.trim()).filter(Boolean);
+  let corpo = '';
+  if (!linhas.length) corpo = '<p class="note">Nenhum email cadastrado neste aparelho ainda.</p>';
+  linhas.forEach((l, i) => {
+    const partes = l.split(/[;|]/).map(x => x.trim());
+    corpo += campoDado('ddE' + i, 'Email ' + (i + 1), partes[0] || '', false);
+    if (partes[1]) corpo += campoDado('ddS' + i, 'Senha do email ' + (i + 1), partes[1], false);
+  });
+  if (edit) {
+    corpo += '<div class="dado"><label>Editar lista (um por linha: email ; senha)</label>' +
+      '<textarea class="bk-area" id="ddEmails" style="min-height:90px;">' + esc(cel.emails || '') + '</textarea></div>';
+  }
+  abreModal('<h2>' + esc(cel.nome) + '</h2><div class="mm">Emails do aparelho</div>' + corpo +
     '<div class="rodape">' + (edit ? '<button class="btn primary" id="ddSalvar">Salvar</button>' : '') +
     '<button class="btn" id="ddFechar">Fechar</button></div>');
   const sv = document.getElementById('ddSalvar');
   if (sv) sv.addEventListener('click', async () => {
-    const upd = {
-      apple_email: document.getElementById('ddA').value.trim() || null,
-      apple_senha: document.getElementById('ddB').value.trim() || null,
-    };
-    const { error } = await cli.from('celulares').update(upd).eq('id', celId);
+    const { error } = await cli.from('celulares').update({ emails: document.getElementById('ddEmails').value.trim() || null }).eq('id', celId);
     if (error) toast('Falha ao salvar: ' + error.message);
     else { await recarregaConfig(); toast('Dados salvos.'); fechaModal(); }
   });
