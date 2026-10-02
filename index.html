@@ -179,6 +179,10 @@
     transition: transform 0.15s; display: inline-block;
   }
   .fac-head.fechado .caret { transform: rotate(-90deg); }
+  .marca-head {
+    margin: 18px 2px 6px; font-size: 12px; font-weight: 800;
+    letter-spacing: .12em; text-transform: uppercase; opacity: .55;
+  }
   .op-head {
     display: flex; align-items: baseline; gap: 10px;
     cursor: pointer; user-select: none;
@@ -760,6 +764,18 @@ function renderPainel() {
     return c;
   };
 
+  const NOME_MARCA = { publicamed: 'PublicaMED', escopomed: 'EscopoMed' };
+  const porMarca = (cels) => {
+    const marcas = [...new Set(cels.map(c => c.marca || 'publicamed'))]
+      .sort((a, b) => (a === 'publicamed' ? -1 : b === 'publicamed' ? 1 : a.localeCompare(b)));
+    let s = '';
+    for (const m of marcas) {
+      if (marcas.length > 1) s += '<div class="marca-head">' + esc(NOME_MARCA[m] || m) + '</div>';
+      for (const cel of cels.filter(c => (c.marca || 'publicamed') === m)) s += celCard(cel);
+    }
+    return s;
+  };
+
   const abertos = opsAbertos();
   for (const op of listaOps) {
     const cels = celsDe(op.email);
@@ -772,11 +788,11 @@ function renderPainel() {
         '<span class="caret">&#9662;</span></div>';
       h += '<div class="op-body" data-opb="' + esc(op.email) + '"' + (aberto ? '' : ' hidden') + '>';
       if (!cels.length) h += '<div class="card">Nenhum celular atribu&iacute;do. Use o seletor "operador" de um celular pra trazer pra c&aacute;.</div>';
-      for (const cel of cels) h += celCard(cel);
+      h += porMarca(cels);
       h += '</div>';
     } else {
       if (!cels.length) h += '<div class="card">Nenhum celular atribu&iacute;do a voc&ecirc; ainda. Fale com o Lucas.</div>';
-      for (const cel of cels) h += celCard(cel);
+      h += porMarca(cels);
     }
   }
 
