@@ -543,18 +543,36 @@ function gruposRegiao(slug) {
   _grupos[slug] = arr;
   return arr;
 }
-// Divide os perfis da região entre as contas do celular.
-// Regras: (1) perfil concluído ou descartado por uma conta do celular não aparece
-// para as outras; (2) o que sobrou da fatia de uma conta em ban (não fechado por
-// ninguém) passa para as contas ativas com menos carga. Assim conta nova que
-// substitui conta derrubada recebe perfis inéditos, nunca os já varridos.
+// Região de uma conta: a dela, se tiver; senão a do celular.
+function regiaoDe(conta) {
+  const cel = celDe(conta);
+  return conta.regiao || (cel ? cel.regiao : null);
+}
+function regsDoCel(cel) {
+  const rs = contasDoCel(cel.id).filter(c => (c.status || 'ativa') !== 'ban').map(regiaoDe);
+  return [...new Set(rs.length ? rs : [cel.regiao])];
+}
+function nomeReg(slug) { return PERFIS[slug] ? PERFIS[slug].nome : (slug || '—'); }
+const _hset = {};
+function handlesDe(slug) {
+  if (!_hset[slug]) _hset[slug] = new Set(PERFIS[slug] ? PERFIS[slug].perfis.map(p => p.h) : []);
+  return _hset[slug];
+}
+// Divide os perfis de uma região entre TODAS as contas da operação naquela região
+// (de qualquer celular), particulares primeiro. Regras:
+// (1) perfil concluído ou descartado por qualquer conta não aparece para as outras;
+// (2) perfil "seguindo agora" fica com a conta ativa que está nele;
+// (3) o que sobrou da fatia de uma conta em ban passa para as ativas com menos carga.
+// Conta nova, ou que mudou de região, recebe só perfis que ninguém pegou.
 const fechado = e => e === 'concluido' || e === 'descartado';
 function sliceDe(conta) {
-  const cel = celDe(conta);
-  const irmas = contasDoCel(cel.id);
+  const slug = regiaoDe(conta);
+  const ordCel = id => { const c = CELULARES.find(x => x.id === id); return c ? c.ordem : 999; };
+  const irmas = CONTAS.filter(c => regiaoDe(c) === slug)
+    .sort((a, b) => (ordCel(a.celular) - ordCel(b.celular)) || (a.ordem - b.ordem));
   const idx = irmas.findIndex(c => c.id === conta.id);
   if (idx < 0) return { idx, total: irmas.length, perfis: [], grupos: [] };
-  const grupos = gruposRegiao(cel.regiao);
+  const grupos = gruposRegiao(slug);
   const ordemGrupo = new Map(grupos.map((g, i) => [g.f, i]));
   const cargas = irmas.map(() => 0);
   const base = irmas.map(() => []);
@@ -564,24 +582,30 @@ function sliceDe(conta) {
     cargas[alvo] += g.perfis.length;
     base[alvo].push(g);
   }
-  const fechouPor = {};
-  for (const c of irmas) {
-    const p = PROG[c.id] || {};
-    for (const h in p) if (fechado(p[h].estado) && !fechouPor[h]) fechouPor[h] = c.id;
-  }
   const emBan = c => (c.status || 'ativa') === 'ban';
+  const donoDe = {};
+  for (const c of CONTAS) {
+    const p = PROG[c.id] || {};
+    for (const h in p) if (fechado(p[h].estado) && !donoDe[h]) donoDe[h] = c.id;
+  }
+  for (const c of CONTAS) {
+    if (emBan(c)) continue;
+    const p = PROG[c.id] || {};
+    const daRegiao = handlesDe(regiaoDe(c));
+    for (const h in p) if (p[h].estado === 'seguindo' && !donoDe[h] && daRegiao.has(h)) donoDe[h] = c.id;
+  }
   const ativas = [];
   irmas.forEach((c, i) => { if (!emBan(c)) ativas.push(i); });
   const out = irmas.map(() => []);
   for (const i of ativas) for (const g of base[i]) {
-    const ps = g.perfis.filter(p => !fechouPor[p.h] || fechouPor[p.h] === irmas[i].id);
+    const ps = g.perfis.filter(p => !donoDe[p.h] || donoDe[p.h] === irmas[i].id);
     if (ps.length) out[i].push({ ...g, perfis: ps });
   }
   const carga = out.map(gs => gs.reduce((s, g) => s + g.perfis.length, 0));
   if (ativas.length) irmas.forEach((c, i) => {
     if (!emBan(c)) return;
     for (const g of base[i]) {
-      const resto = g.perfis.filter(p => !fechouPor[p.h]);
+      const resto = g.perfis.filter(p => !donoDe[p.h]);
       if (!resto.length) continue;
       let alvo = ativas[0];
       for (const j of ativas) if (carga[j] < carga[alvo]) alvo = j;
@@ -589,11 +613,11 @@ function sliceDe(conta) {
       out[alvo].push({ ...g, perfis: resto });
     }
   });
-  // cada conta continua vendo o que ela mesma fechou, mesmo fora da fatia atual
-  const doCel = new Set();
-  for (const g of out[idx]) for (const p of g.perfis) doCel.add(p.h);
+  // cada conta continua vendo o que é dela nesta região, mesmo fora da fatia atual
+  const ja = new Set();
+  for (const g of out[idx]) for (const p of g.perfis) ja.add(p.h);
   for (const g of grupos) {
-    const meus = g.perfis.filter(p => fechouPor[p.h] === conta.id && !doCel.has(p.h));
+    const meus = g.perfis.filter(p => donoDe[p.h] === conta.id && !ja.has(p.h));
     if (meus.length) out[idx].push({ ...g, perfis: meus });
   }
   const juntos = new Map();
@@ -767,12 +791,12 @@ function renderPainel() {
   h += '<p class="sub">' + (gestor ? 'Toque no nome de um operador pra abrir os celulares dele.' : 'Toque numa conta pra abrir o checklist da regi&atilde;o dela.') + '</p>';
 
   const celCard = (cel) => {
-    const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+    const reg = regsDoCel(cel).map(nomeReg).join(' · ');
     const dono = cel.operador_email === EU.email;
     let c = '<div class="card"><div class="cel-head"><h2>' + esc(cel.nome) + '</h2>';
     if (gestor) {
       c += '<span class="g-row"><button class="minibtn" data-ddc="' + esc(cel.id) + '">Dados</button>' +
-        '<label>regi&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
+        '<label>regi&atilde;o padr&atilde;o</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="regiao">' +
         Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === cel.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
         '</select>' +
         '<label>operador</label><select class="sel" data-gcel="' + esc(cel.id) + '" data-campo="operador_email">' +
@@ -791,13 +815,17 @@ function renderPainel() {
       const stSel = podeStatus
         ? '<span style="margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;">' +
           '<button class="minibtn" data-dd="' + esc(conta.id) + '">Dados</button>' +
+          (gestor ? '<select class="sel" data-greg="' + esc(conta.id) + '" title="Regi&atilde;o desta conta">' +
+            '<option value=""' + (conta.regiao ? '' : ' selected') + '>= celular</option>' +
+            Object.keys(PERFIS).map(s => '<option value="' + esc(s) + '"' + (s === conta.regiao ? ' selected' : '') + '>' + esc(PERFIS[s].nome) + '</option>').join('') +
+            '</select>' : '') +
           '<select class="st-sel ' + st + '" data-gst="' + esc(conta.id) + '" style="margin-left:0;">' +
           [['ativa','Ativa'],['pausada','Pausada'],['ban','Ban']].map(([v, l]) => '<option class="' + v + '" value="' + v + '"' + (st === v ? ' selected' : '') + '>' + l + '</option>').join('') +
           '</select></span>'
         : '';
       c += '<div class="conta-row ' + st + '" data-conta="' + esc(conta.id) + '">' +
         '<div class="conta-main"><div class="conta-user" style="display:flex;align-items:center;gap:2px;"><span class="dot ' + st + '" title="' + st + '"></span>' + esc(conta.usuario) + stSel + '</div>' +
-        '<div class="conta-meta">Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
+        '<div class="conta-meta">' + esc(nomeReg(regiaoDe(conta))) + ' &middot; Bloco ' + BLOCOS[r.sl.idx] + ' &middot; ' + r.feitos + '/' + r.total + ' conclu&iacute;dos' + (r.nDesc ? ' &middot; ' + r.nDesc + ' descartados' : '') + '</div>' +
         (at.length ? '<div class="conta-atual">&#9679; seguindo agora: ' + at.map(esc).join(', ') + '</div>' : '') +
         '<div class="pbar"><div style="width:' + r.pct + '%"></div></div></div>' +
         '<span class="pct">' + r.pct + '%</span><span class="arrow">&rarr;</span></div>';
@@ -827,8 +855,8 @@ function renderPainel() {
   }
 
   h += '<button class="btn" id="btnRel" style="width:100%;margin-top:6px;">Copiar relat&oacute;rio</button>';
-  h += '<p class="note">Regi&otilde;es mapeadas sem celular: ' +
-    Object.keys(PERFIS).filter(s => !CELULARES.some(c => c.regiao === s)).map(s => esc(PERFIS[s].nome)).join(' &middot; ') + '.</p>';
+  h += '<p class="note">Regi&otilde;es mapeadas sem conta ativa: ' +
+    Object.keys(PERFIS).filter(s => !CONTAS.some(c => (c.status || 'ativa') !== 'ban' && regiaoDe(c) === s)).map(s => esc(PERFIS[s].nome)).join(' &middot; ') + '.</p>';
   app.innerHTML = h;
 
   app.querySelectorAll('.op-head').forEach(hd => hd.addEventListener('click', () => {
@@ -854,6 +882,12 @@ function renderPainel() {
   });
   app.querySelectorAll('.conta-row').forEach(r => r.addEventListener('click', () => nav('#c/' + encodeURIComponent(r.dataset.conta))));
   document.getElementById('btnRel').addEventListener('click', copiaRelatorio);
+  app.querySelectorAll('select[data-greg]').forEach(s => s.addEventListener('click', e => e.stopPropagation()));
+  app.querySelectorAll('select[data-greg]').forEach(s => s.addEventListener('change', async () => {
+    const { error } = await cli.from('contas').update({ regiao: s.value || null }).eq('id', s.dataset.greg);
+    if (error) { toast('Falha ao salvar a região.'); }
+    else { await recarregaConfig(); toast('Região da conta salva.'); route(); }
+  }));
   app.querySelectorAll('select[data-gcel]').forEach(s => s.addEventListener('change', async () => {
     const upd = {}; upd[s.dataset.campo] = s.value;
     const { error } = await cli.from('celulares').update(upd).eq('id', s.dataset.gcel);
@@ -871,7 +905,7 @@ function renderConta(contaId) {
   syncChip();
   const conta = CONTAS.find(c => c.id === contaId);
   const cel = celDe(conta);
-  const reg = PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao;
+  const reg = nomeReg(regiaoDe(conta));
   const r = resumoConta(contaId);
 
   const st = conta.status || 'ativa';
@@ -1070,11 +1104,11 @@ function copiaRelatorio() {
     if (!cels.length) continue;
     txt += '\n== ' + op.nome + ' ==\n';
     for (const cel of cels) {
-      txt += cel.nome + ' · ' + (PERFIS[cel.regiao] ? PERFIS[cel.regiao].nome : cel.regiao) + '\n';
+      txt += cel.nome + ' · ' + regsDoCel(cel).map(nomeReg).join(' / ') + '\n';
       for (const conta of contasDoCel(cel.id)) {
         const r = resumoConta(conta.id);
         const at = atuais(conta.id);
-        txt += conta.usuario + ': ' + r.feitos + '/' + r.total + ' concluidos' +
+        txt += conta.usuario + (conta.regiao ? ' (' + nomeReg(conta.regiao) + ')' : '') + ': ' + r.feitos + '/' + r.total + ' concluidos' +
           (r.nDesc ? ' · ' + r.nDesc + ' descartados' : '') +
           (at.length ? ' · seguindo agora ' + at.join(', ') : '') + '\n';
       }
